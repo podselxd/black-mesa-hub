@@ -1,0 +1,10 @@
+cache/
+hub.log
+install.json
+settings.json
+run.json
+srccoop.json
+.browser-profile/
+Compartir/
+*.hubtmp
+*.hubold

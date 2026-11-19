@@ -1,0 +1,711 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Black Mesa Hub</title>
+<link rel="icon" id="fav" href="data:,">
+<style>
+:root{
+  --bg:#0d0f12; --panel:#15181d; --panel2:#1b1f26; --line:#272c35; --text:#e8eaee; --mute:#8b93a1;
+  --hev:#ffa826; --hev-d:#c97d0c; --ok:#4ade80; --bad:#f87171; --r:12px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:radial-gradient(1200px 500px at 80% -10%,#2a1d09 0,transparent 60%),var(--bg);color:var(--text);
+  font:14px/1.45 "Segoe UI",system-ui,sans-serif;overflow-x:hidden}
+h1,h2,.num{font-family:Bahnschrift,"Segoe UI",sans-serif;letter-spacing:.04em;text-transform:uppercase}
+header{display:flex;align-items:center;gap:16px;padding:14px 24px;border-bottom:1px solid var(--line);background:#0b0c0fcc;position:sticky;top:0;z-index:5;backdrop-filter:blur(6px)}
+.logo{display:flex;align-items:center;gap:12px;position:relative}
+.logo-btn{background:none;border:0;padding:0;cursor:pointer;display:block;border-radius:10px;transition:.15s}
+.logo-btn:hover{transform:scale(1.08)}
+.logo-btn svg{width:38px;height:38px;display:block}
+#logo-pop{position:absolute;top:50px;left:0;z-index:20;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px;display:grid;grid-template-columns:repeat(4,72px);gap:8px;box-shadow:0 14px 40px #000a}
+#logo-pop button{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:8px 4px 6px;color:var(--mute);font:600 11px "Segoe UI";cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px}
+#logo-pop button svg{width:34px;height:34px}
+#logo-pop button.on{border-color:var(--hev);color:var(--hev);background:#2a1f0c}
+.logo h1{margin:0;font-size:19px}
+.logo small{display:block;color:var(--mute);font-size:11px;letter-spacing:.12em;text-transform:uppercase}
+nav{display:flex;gap:4px;margin-left:28px;background:var(--panel);padding:4px;border-radius:10px;border:1px solid var(--line)}
+nav button{background:none;border:0;color:var(--mute);padding:8px 18px;border-radius:7px;font:600 13px Bahnschrift,"Segoe UI";letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
+nav button.on{background:var(--hev);color:#1a1100}
+.pills{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.pill{display:flex;align-items:center;gap:7px;background:var(--panel);border:1px solid var(--line);padding:5px 11px;border-radius:99px;font-size:12px;color:var(--mute)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--bad)}
+.dot.ok{background:var(--ok);box-shadow:0 0 8px var(--ok)}
+main{max-width:1360px;margin:0 auto;padding:22px 28px 120px;align-items:start;display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:20px}
+.card{background:linear-gradient(180deg,#171a20,#14171c);border:1px solid var(--line);border-radius:var(--r);padding:18px;box-shadow:0 10px 30px #0003}
+.card h2{margin:0 0 12px;font-size:15px;color:var(--hev)}
+.col{display:flex;flex-direction:column;gap:20px}
+.chapters{display:grid;grid-template-columns:repeat(auto-fill,minmax(188px,1fr));gap:8px}
+.ch{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:9px 11px;text-align:left;color:var(--text);cursor:pointer;font:inherit;transition:.12s}
+.ch:hover{border-color:#3b4250}
+.ch .n{font:700 11px Bahnschrift;color:var(--mute);letter-spacing:.1em}
+.ch .t{font-weight:600;font-size:13px;margin-top:1px}
+.ch.on{border-color:var(--hev);background:#2a1f0c;box-shadow:inset 0 0 0 1px var(--hev)}
+.ch.on .n{color:var(--hev)}
+.rule{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px dashed var(--line)}
+.rule b{font-weight:600}.rule span{display:block;color:var(--mute);font-size:11.5px;font-family:Consolas,monospace}
+.sw{position:relative;width:42px;height:24px;flex:none}
+.sw input{opacity:0;position:absolute;inset:0;width:100%;height:100%;margin:0;cursor:pointer;z-index:1}
+.sw i{position:absolute;inset:0;background:#2b313b;border-radius:99px;transition:.15s}
+.sw i:after{content:"";position:absolute;width:18px;height:18px;left:3px;top:3px;background:#aab;border-radius:50%;transition:.15s}
+.sw input:checked+i{background:var(--hev)}.sw input:checked+i:after{left:21px;background:#1a1100}
+.seg{display:flex;background:var(--panel2);border-radius:8px;padding:2px;border:1px solid var(--line)}
+.seg button{background:none;border:0;color:var(--mute);padding:5px 10px;border-radius:6px;font:600 12px "Segoe UI";cursor:pointer}
+.seg button.on{background:var(--hev);color:#1a1100}
+.seg.wide{display:flex;margin:4px 0 8px}.seg.wide button{flex:1;padding:8px 6px}
+input[type=number],input[type=text],textarea,select{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:7px 10px;font:inherit;width:100%}
+input[type=number]{width:74px;text-align:center}
+input[type=range]{accent-color:var(--hev);width:150px}
+textarea{font-family:Consolas,monospace;font-size:12.5px;resize:vertical;min-height:54px}
+.cmds{background:#0a0b0d;border:1px solid var(--line);border-radius:9px;padding:12px 14px;font:13px/1.55 Consolas,monospace;color:#cfe;white-space:pre;overflow:auto;margin-top:12px}
+.cmds .c{color:var(--mute)}
+.btn{background:var(--panel2);border:1px solid var(--line);color:var(--text);padding:8px 14px;border-radius:8px;font:600 13px "Segoe UI";cursor:pointer}
+.btn:hover{border-color:#455}
+.btn.pri{background:var(--hev);border-color:var(--hev);color:#1a1100}
+.btn.pri:hover{background:#ffb84d}
+.btn.bad,.btn.danger{color:var(--bad)}
+.btn.danger:hover{border-color:var(--bad)}
+.btn.sm{padding:5px 14px;font-size:12px}
+.btn:disabled{opacity:.5;cursor:default}
+.code{display:flex;align-items:center;gap:12px;background:#0a0b0d;border:1px dashed var(--hev-d);border-radius:10px;padding:14px 16px;margin:6px 0 12px}
+.code .num{font-size:22px;color:var(--hev);letter-spacing:.06em;word-break:break-all}
+.code small{display:block;color:var(--mute);font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-family:"Segoe UI"}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.slots{display:flex;flex-direction:column;gap:6px;margin:12px 0 4px}
+.slot{border-radius:10px;border:1px solid var(--line);display:flex;align-items:center;gap:12px;color:var(--mute);padding:9px 14px;width:100%}
+.slot small{display:block;font-size:11.5px;color:var(--mute)}
+.slot.me{border-color:var(--hev);background:#2a1f0c;color:var(--text)}
+.slot .av{width:32px;height:32px;border-radius:50%;background:var(--hev);color:#1a1100;font:700 15px Bahnschrift;display:grid;place-items:center;flex:none}
+.slot.guest .av{background:#2b313b;color:var(--hev)}
+.friends{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.friend{display:flex;align-items:center;gap:10px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.friend .av{width:32px;height:32px;border-radius:50%;background:#2b313b;color:var(--hev);font:700 14px Bahnschrift;display:grid;place-items:center;flex:none}
+.friend .nm{flex:1;min-width:0;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.friend .id{display:block;font:11px Consolas,monospace;color:var(--mute);font-weight:400}
+.friend .av.lock{color:var(--hev)}
+.mini{background:none;border:0;color:var(--mute);cursor:pointer;padding:4px 7px;border-radius:6px;font:12px "Segoe UI"}
+.mini:hover{background:#262b34;color:var(--text)}
+.note{font-size:12px;color:var(--mute);margin-top:10px}
+.note.warn{color:var(--hev)}
+.dock{position:fixed;left:0;right:0;bottom:0;background:#0b0c0ff0;border-top:1px solid var(--line);padding:14px 24px;display:flex;align-items:center;gap:16px;z-index:5;backdrop-filter:blur(6px)}
+.dock .sum{flex:1;min-width:0}
+.dock .sum b{font:700 16px Bahnschrift;letter-spacing:.05em;text-transform:uppercase}
+.dock .sum span{display:block;color:var(--mute);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dock .btn{padding:12px 20px}
+.go{font:700 18px Bahnschrift;letter-spacing:.1em;text-transform:uppercase;padding:14px 40px;border-radius:10px;border:0;background:linear-gradient(#ffb53d,#e58e0a);color:#1a1100;cursor:pointer;box-shadow:0 6px 24px #ffa82640}
+.go:hover{filter:brightness(1.08)}.go:disabled{opacity:.45;cursor:default}
+.go.sm{font-size:15px;padding:0 28px;border-radius:9px;box-shadow:none;letter-spacing:.08em}
+#toast{position:fixed;left:50%;bottom:96px;transform:translate(-50%,20px);background:#222831;border:1px solid var(--line);padding:10px 18px;border-radius:99px;opacity:0;transition:.2s;pointer-events:none;z-index:90}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+.cbtns{display:flex;flex-wrap:wrap;gap:8px}
+.cbtns .btn{padding:7px 12px}
+code{background:#0a0b0d;padding:1px 6px;border-radius:5px;font:12px Consolas,monospace}
+.spin{width:46px;height:46px;border-radius:50%;border:4px solid #2b313b;border-top-color:var(--hev);animation:sp .9s linear infinite;margin:0 auto 14px}
+@keyframes sp{to{transform:rotate(360deg)}}
+#loading{position:fixed;inset:0;z-index:50;background:#08090bf0;backdrop-filter:blur(8px);display:grid;place-items:center;padding:20px}
+.ld-card{width:min(460px,100%);background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:28px 28px 22px;text-align:center;box-shadow:0 20px 60px #000a}
+.ld-card h2{margin:0 0 4px;font-size:20px;color:var(--text)}
+.ld-card .sub2{color:var(--mute);font-size:12.5px;margin-bottom:16px}
+.bar{height:8px;background:#222831;border-radius:99px;overflow:hidden;margin:0 0 16px}
+.bar b{display:block;height:100%;width:4%;background:linear-gradient(90deg,#e58e0a,#ffc15e);border-radius:99px;transition:width .4s}
+#ld-steps{list-style:none;margin:0;padding:0;text-align:left;display:flex;flex-direction:column;gap:7px}
+#ld-steps li{display:flex;align-items:center;gap:10px;color:var(--mute);font-size:13.5px}
+#ld-steps li i{width:18px;height:18px;border-radius:50%;border:2px solid #343b47;flex:none;display:grid;place-items:center;font-style:normal;font-size:11px;line-height:1}
+#ld-steps li.ok{color:var(--text)}
+#ld-steps li.ok i{background:var(--ok);border-color:var(--ok);color:#06210f}
+#ld-steps li.ok i:after{content:"✓";font-weight:700}
+#ld-steps li.cur{color:var(--hev)}
+#ld-steps li.cur i{border-color:var(--hev);animation:pl 1s ease-in-out infinite}
+@keyframes pl{50%{box-shadow:0 0 0 5px #ffa82633}}
+#ld-err{margin-top:14px;color:var(--bad);font-size:13px}
+#busy{position:fixed;inset:0;z-index:40;background:#08090bb0;display:grid;place-content:center;justify-items:center;gap:6px;color:var(--text);font-weight:600}
+#busy .spin{margin:0 0 4px}
+.health{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.health li{display:flex;gap:11px;align-items:flex-start;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:9px 12px}
+.health li i{width:18px;height:18px;border-radius:50%;flex:none;margin-top:1px;display:grid;place-items:center;font-style:normal;font-size:11px;font-weight:700}
+.health li.ok i{background:var(--ok);color:#06210f}.health li.ok i:after{content:"✓"}
+.health li.warn i{background:var(--hev);color:#1a1100}.health li.warn i:after{content:"!"}
+.health li.bad i{background:var(--bad);color:#2a0606}.health li.bad i:after{content:"✕"}
+.health b{font-weight:600}.health span{display:block;color:var(--mute);font-size:12px;word-break:break-word}
+.vtag{font:600 12px Consolas,monospace;color:var(--mute);background:var(--panel2);border:1px solid var(--line);padding:2px 8px;border-radius:99px;text-transform:none;letter-spacing:0;vertical-align:middle;margin-left:6px}
+#changelog details{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:9px 12px;margin-top:8px}
+#changelog summary{cursor:pointer;font-weight:600}
+#changelog summary em{font-style:normal;color:var(--mute);font-weight:400;margin-left:8px;font-size:12px}
+#changelog ul{margin:8px 0 2px;padding-left:20px}
+#changelog li{margin:3px 0;color:#cfd3da;font-size:13px}
+.hint{color:var(--mute);font:12.5px Consolas,monospace;margin-bottom:12px}
+#view-reglas{grid-template-columns:repeat(auto-fit,minmax(360px,1fr))}
+.joinrow{display:flex;gap:10px;align-items:stretch}
+.joinrow textarea{flex:1;min-height:46px;height:46px;max-height:120px;resize:none;font:13px Consolas,monospace;padding:12px 14px;line-height:1.3}
+.idline{display:flex;align-items:center;gap:10px;margin-top:10px;font:600 13px Consolas,monospace;color:var(--mute)}
+.idline.ok{color:var(--hev)}
+.idline .mini{margin-left:auto}
+.okmark{color:var(--ok);font-weight:700;padding:0 6px}
+.sk-tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.chips{display:flex;gap:6px;flex:1;flex-wrap:wrap}
+.chips button{background:var(--panel2);border:1px solid var(--line);color:var(--mute);border-radius:99px;padding:6px 13px;font:600 12px "Segoe UI";cursor:pointer}
+.chips button em{font-style:normal;opacity:.7;margin-left:6px}
+.chips button.on{background:var(--hev);border-color:var(--hev);color:#1a1100}
+.links{display:flex;flex-direction:column;gap:8px}
+.linkrow{display:flex;align-items:center;gap:14px;background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:12px 16px;transition:.12s}
+.linkrow:hover{border-color:#3b4250}
+.linkrow .nm{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.linkrow b{font:700 14px Bahnschrift;letter-spacing:.03em;color:var(--hev)}
+.linkrow span{font-size:13px}
+.linkrow em{font-style:normal;color:var(--mute);font-size:11.5px}
+.chatcmds{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px}
+.cg h3{margin:0 0 8px;font:700 11px Bahnschrift;letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
+.cc{display:flex;align-items:center;gap:12px;width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:7px 12px;margin-bottom:6px;cursor:pointer;color:var(--text);font:inherit;text-align:left;transition:.12s}
+.cc:hover{border-color:var(--hev)}
+.cc code{font:600 13px Consolas,monospace;color:var(--hev);min-width:140px}
+.cc span{color:var(--mute);font-size:12.5px}
+.inv{background:#0a0b0d;border:1px solid var(--line);border-radius:9px;padding:10px 14px;font:13px/1.55 Consolas,monospace;color:#cfe;white-space:pre-wrap;word-break:break-all;margin:10px 0}
+#lost{position:sticky;top:0;z-index:60;background:#3a1416;border-bottom:1px solid #8a2b30;color:#ffd7d7;padding:11px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+#lost span{color:#e8b4b4;font-size:13px;flex:1;min-width:200px}
+.hidden{display:none!important}
+@media(max-width:900px){main{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="lost" class="hidden"><b>Se perdió la conexión con el Hub.</b><span>Ábrelo de nuevo desde su acceso directo o el .exe.</span><button class="btn sm" id="lost-retry">Reintentar</button><button class="btn sm" id="lost-close">Cerrar ventana</button></div>
+<header>
+  <div class="logo">
+    <button class="logo-btn" id="logo-btn" title="Cambiar logo"></button>
+    <div id="logo-pop" class="hidden"></div>
+    <div><h1>Black Mesa Hub</h1><small>Campaña co-op · SourceCoop</small></div>
+  </div>
+  <nav>
+    <button id="tab-host" class="on">Crear partida</button>
+    <button id="tab-reglas">Reglas</button>
+    <button id="tab-join">Unirme</button>
+    <button id="tab-cmds">Comandos</button>
+    <button id="tab-mods">Mods</button>
+    <button id="tab-ajustes">Ajustes</button>
+  </nav>
+  <div class="pills">
+    <div class="pill"><span class="dot" id="d-steam"></span><span id="t-steam">Steam</span></div>
+    <div class="pill"><span class="dot" id="d-srv"></span><span id="t-srv">Servidor apagado</span></div>
+    <div class="pill"><span class="dot" id="d-game"></span><span id="t-game">Juego</span></div>
+  </div>
+</header>
+
+<main id="view-host">
+  <div class="col">
+    <section class="card hidden" id="need-card">
+      <h2>Falta preparar el servidor</h2>
+      <div class="note" id="need-note" style="margin:0 0 12px"></div>
+      <div class="row"><button class="btn pri" id="need-install">Instalar ahora</button></div>
+    </section>
+    <section class="card hidden" id="coop-card">
+      <h2>SourceCoop</h2>
+      <div class="note" id="coop-note" style="margin:0 0 12px"></div>
+      <div class="row"><button class="btn" id="coop-check">Buscar arreglo</button><button class="btn pri hidden" id="coop-update">Actualizar SourceCoop</button><button class="btn" id="coop-link">Ver el problema ↗</button></div>
+    </section>
+    <section class="card">
+      <h2>Campaña Black Mesa</h2>
+      <div class="chapters" id="chapters"></div>
+    </section>
+  </div>
+  <div class="col">
+    <section class="card">
+      <h2>Sala de invitación</h2>
+      <div class="row" style="margin-bottom:4px">
+        <select id="addr" style="flex:1"></select>
+        <button class="btn" id="addr-pub" title="Pregunta tu IP pública a api.ipify.org">Mi IP pública</button>
+      </div>
+      <div class="inv" id="inv">—</div>
+      <div class="row">
+        <button class="btn pri" id="copy-invite">Copiar invitación</button>
+        <button class="btn" id="copy-connect">Solo connect</button>
+      </div>
+      <div class="note" id="addr-note"></div>
+      <div class="slots" id="slots"></div>
+      <div class="note warn hidden" id="steam-warn">Steam está cerrado: no se puede iniciar. <button class="btn" id="steam-open" style="margin-left:8px;padding:4px 10px">Abrir Steam</button></div>
+    </section>
+    <section class="card">
+      <h2>Amigos</h2>
+      <div class="row"><input type="text" id="f-name" placeholder="Nombre" style="flex:1"><button class="btn" id="f-add">Agregar</button></div>
+      <div class="friends" id="friends"></div>
+    </section>
+  </div>
+</main>
+
+<main id="view-reglas" class="hidden">
+  <section class="card">
+    <h2>Partida</h2>
+    <div class="rule"><div><b>Trucos</b><span>sv_cheats</span></div><label class="sw"><input type="checkbox" id="r-cheats"><i></i></label></div>
+    <div class="rule"><div><b>Fuego amigo</b></div><label class="sw"><input type="checkbox" id="r-ff"><i></i></label></div>
+    <div class="rule"><div><b>Supervivencia</b></div><div class="seg" id="r-survival"><button data-v="1">On</button><button data-v="0">Off</button></div></div>
+    <div class="rule"><div><b>Reaparición (seg)</b></div><input type="number" id="r-respawn" min="0" max="60"></div>
+    <div class="rule"><div><b>Jugadores máx.</b><span><em id="v-max" style="font-style:normal"></em> jugadores</span></div><input type="range" id="r-max" min="2" max="32"></div>
+    <div class="rule"><div><b>Contraseña</b><span>vacía = sin contraseña</span></div><input type="text" id="r-pass" style="width:160px" maxlength="40" autocomplete="off"></div>
+    <div class="rule"><div><b>Nombre del servidor</b></div><input type="text" id="r-name" style="width:200px" maxlength="60" placeholder="Black Mesa Co-op"></div>
+  </section>
+  <section class="card">
+    <h2>Pantalla y Hub</h2>
+    <div class="rule"><div><b>Pantalla</b><span id="v-screen"></span></div></div>
+    <div class="seg wide" id="r-screen"><button data-v="window">Ventana</button><button data-v="full">Completa</button><button data-v="full43">Completa 4:3</button></div>
+    <div class="rule"><div><b>Gráficos</b><span>si el juego se cierra al abrir, cambia esto</span></div><select id="r-gfx" style="width:190px"><option value="default">Normal (sin DXVK)</option><option value="dxvk">DXVK (Vulkan)</option><option value="d3d9">Direct3D 9</option></select></div>
+    <div class="rule"><div><b>Minimizar el Hub al iniciar</b></div><label class="sw"><input type="checkbox" id="r-minimize"><i></i></label></div>
+    <div class="rule"><div><b>Copiar invitación al iniciar</b></div><label class="sw"><input type="checkbox" id="r-autocopy"><i></i></label></div>
+  </section>
+  <section class="card">
+    <h2>Avanzado</h2>
+    <div style="margin-top:2px"><b style="font-weight:600">Comandos extra</b>
+      <textarea id="r-extra" placeholder="mp_weaponstay 1" style="margin-top:6px"></textarea></div>
+    <div class="cmds" id="cmds"></div>
+  </section>
+</main>
+
+<main id="view-join" class="hidden">
+  <section class="card">
+    <h2>Unirme a un amigo</h2>
+    <div class="joinrow">
+      <textarea id="j-text" rows="1" placeholder="Pega la invitación o la IP (100.64.1.2:27015)"></textarea>
+      <button class="go sm" id="go-join" disabled>Unirme</button>
+    </div>
+    <div class="idline" id="j-idline"><span id="j-id">Sin dirección</span><button class="mini" id="j-copy">Copiar connect</button></div>
+    <div class="note">Si el mapa es del Workshop, suscríbete antes en Steam. La campaña normal ya viene en el juego.</div>
+  </section>
+  <section class="card">
+    <h2>Amigos guardados</h2>
+    <div class="friends" id="hosts"></div>
+  </section>
+</main>
+
+<main id="view-cmds" class="hidden" style="grid-template-columns:1fr">
+  <section class="card">
+    <h2>En el chat del juego</h2>
+    <div class="chatcmds" id="chat-cmds"></div>
+  </section>
+  <div id="cmd-groups" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px"></div>
+  <section class="card">
+    <h2>Teletransporte</h2>
+    <div class="hint">/tp nombre · /tp lista · /s guardar · /p volver</div>
+    <div class="row"><input type="text" id="tp-name" placeholder="Nombre del jugador" style="width:220px"><button class="btn pri" id="tp-go">Ir con él (/tp)</button>
+      <button class="btn" id="tp-save">Guardar posición (/s)</button><button class="btn" id="tp-load">Ir a posición (/p)</button></div>
+  </section>
+  <section class="card">
+    <h2>Mis atajos</h2>
+    <div class="row"><input type="text" id="sc-name" placeholder="Nombre" style="width:180px"><textarea id="sc-cmds" placeholder="comando" style="flex:1;min-height:40px"></textarea><button class="btn" id="sc-add">Guardar</button></div>
+    <div class="cbtns" id="sc-list" style="margin-top:12px"></div>
+  </section>
+  <section class="card">
+    <h2>Consola del servidor</h2>
+    <div class="row"><textarea id="free" style="flex:1;min-height:40px" placeholder="changelevel bm_c1a1a"></textarea><button class="btn pri" id="free-go">Enviar</button></div>
+  </section>
+</main>
+
+<main id="view-mods" class="hidden">
+  <section class="card">
+    <div class="sk-tools"><h2 style="margin:0">Enlaces</h2><div class="chips" id="mod-cats"></div></div>
+    <div class="links" id="mod-sites"></div>
+  </section>
+  <aside class="card">
+    <h2>Esenciales</h2>
+    <div class="note" style="margin:-4px 0 6px">Lo que hace funcionar la campaña co-op. No se puede borrar desde aquí.</div>
+    <div class="friends" id="mod-ess"></div>
+    <div class="row" style="margin-top:14px"><button class="btn pri hidden" id="mod-fix">Instalar lo que falta</button></div>
+  </aside>
+</main>
+
+<main id="view-ajustes" class="hidden">
+  <section class="card">
+    <div class="row" style="justify-content:space-between;align-items:flex-start">
+      <div><h2>Salud del Hub</h2></div>
+      <span class="pill"><span class="dot" id="hl-dot"></span><span id="hl-sum">Revisando…</span></span>
+    </div>
+    <ul class="health" id="hl-list"></ul>
+    <div class="row" style="margin-top:14px"><button class="btn pri" id="hl-repair">Reparar todo</button><button class="btn" id="hl-refresh">Volver a revisar</button><button class="btn bad" id="hl-undo">Deshacer cambios en el servidor</button></div>
+  </section>
+  <section class="card">
+    <div class="row" style="justify-content:space-between;align-items:flex-start">
+      <div><h2>Black Mesa Hub <span class="vtag" id="ver"></span></h2></div>
+      <div class="row"><button class="btn" id="diag-copy">Copiar diagnóstico</button></div>
+    </div>
+    <div id="changelog"></div>
+    <div class="note">El diagnóstico incluye tu nombre de Steam y rutas de tu PC.</div>
+  </section>
+</main>
+
+<div class="dock" id="dock">
+  <div class="sum"><b id="sum-t">—</b><span id="sum-s"></span></div>
+  <button class="btn" id="dock-rules">Reglas</button>
+  <button class="btn bad hidden" id="stop">Cerrar juego</button>
+  <button class="btn bad hidden" id="stop-srv">Detener servidor</button>
+  <button class="go" id="go-host">Iniciar partida</button>
+</div>
+<div id="loading" class="hidden"><div class="ld-card">
+  <div class="spin" id="ld-spin"></div>
+  <h2 id="ld-title">Iniciando…</h2>
+  <div class="sub2" id="ld-sub"></div>
+  <div class="bar"><b id="ld-bar"></b></div>
+  <ul id="ld-steps"></ul>
+  <div id="ld-err" class="hidden"></div>
+  <button class="btn hidden" id="ld-close" style="margin-top:16px">Cerrar</button>
+</div></div>
+<div id="busy" class="hidden"><div class="spin"></div><span id="busy-t">Aplicando…</span></div>
+<div id="toast"></div>
+
+<script>
+const TOKEN='__TOKEN__';
+let pingFail=0;
+const TITLES={bm_c0a0a:'Black Mesa Inbound',bm_c1a0a:'Anomalous Materials',bm_c1a1a:'Unforeseen Consequences',bm_c1a2a:'Office Complex',bm_c1a3a:"We've Got Hostiles",
+ bm_c1a4a:'Blast Pit',bm_c2a1a:'Power Up',bm_c2a2a:'On a Rail',bm_c2a3a:'Apprehension',bm_c2a4a:'Residue Processing',bm_c2a4e:'Questionable Ethics',
+ bm_c2a5a:'Surface Tension',bm_c3a1a:'Forget About Freeman!',bm_c3a2a:'Lambda Core',bm_c4a1a:'Xen',bm_c4a2a:"Gonarch's Lair",bm_c4a3a:'Interloper',
+ bm_c4a4a:'Nihilanth',bm_c5a1:'Endgame'};
+const DEF={map:'bm_c0a0a',maxplayers:8,cheats:false,friendlyfire:false,respawn:2,survival:0,password:'',hostname:'',screen:'full',gfx:'default',minimize:true,logo:'hex',autoCopy:true,extra:'',friends:[],hosts:[],lastJoin:'',addr:''};
+let S={...DEF}, info={}, running=false, srvRunning=false, pubIp='';
+const $=id=>document.getElementById(id);
+async function api(p,body){
+  const r=await fetch('/api/'+p,{method:body?'POST':'GET',headers:{'X-Hub':TOKEN},body:body?JSON.stringify(body):undefined});
+  return r.json();
+}
+function toast(t){const e=$('toast');e.textContent=t;e.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('on'),2400)}
+async function copy(t,msg){try{await navigator.clipboard.writeText(t);toast(msg||'Copiado')}catch(e){const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();document.execCommand('copy');a.remove();toast(msg||'Copiado')}}
+let saveT;function save(){clearTimeout(saveT);saveT=setTimeout(()=>api('save',S),300)}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+function rulesLines(){
+  return ['sv_lan 0','sv_cheats '+(S.cheats?1:0),'mp_friendlyfire '+(S.friendlyfire?1:0),'sourcecoop_survival_mode '+S.survival,'sourcecoop_respawntime '+S.respawn];
+}
+function chapterTitle(){return TITLES[S.map]||S.map}
+function addrList(){
+  const l=(info.addresses||[]).map(a=>({v:a.ip,t:`${a.label} · ${a.ip}`}));
+  if(pubIp)l.push({v:pubIp,t:`Pública · ${pubIp}`});
+  return l;
+}
+function curAddr(){
+  const l=addrList();if(!l.length)return '';
+  const f=l.find(a=>a.v===S.addr);if(f)return f.v;
+  const t=(info.addresses||[]).find(a=>a.kind==='tailscale')||(info.addresses||[])[0];
+  return t?t.ip:l[0].v;
+}
+function invite(){
+  const a=curAddr()||'TU_IP';
+  return [...(S.password?['password '+S.password]:[]),`connect ${a}:${info.port||27015}`].join('\n');
+}
+
+function render(){
+  const ch=(info.chapters||[]);
+  $('chapters').innerHTML=ch.length?ch.map(c=>`<button class="ch ${c.map===S.map?'on':''}" data-m="${c.map}"><div class="n">CAP ${String(c.n).padStart(2,'0')} · ${c.map}</div><div class="t">${esc(TITLES[c.map]||c.map)}</div></button>`).join(''):'<div class="note">No encontré los capítulos del servidor.</div>';
+  $('r-cheats').checked=S.cheats;$('r-ff').checked=S.friendlyfire;$('r-autocopy').checked=S.autoCopy;$('r-minimize').checked=S.minimize!==false;
+  $('r-respawn').value=S.respawn;$('r-max').value=S.maxplayers;$('v-max').textContent=S.maxplayers;$('r-extra').value=S.extra;$('r-pass').value=S.password;$('r-name').value=S.hostname;$('r-gfx').value=S.gfx||'default';
+  document.querySelectorAll('#r-screen button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.screen));
+  const sc=info.screen||{w:1920,h:1080};
+  $('v-screen').textContent=S.screen==='window'?'-windowed':S.screen==='full43'?`${Math.round(sc.h*4/3)}x${sc.h} · barras negras`:`${sc.w}x${sc.h} · nativa`;
+  document.querySelectorAll('#r-survival button').forEach(b=>b.classList.toggle('on',+b.dataset.v===S.survival));
+  $('cmds').innerHTML=['<span class="c">// se escriben en server.cfg al iniciar</span>',...rulesLines(),...S.extra.split(/\r?\n/).filter(s=>s.trim())].join('\n');
+  // invitación
+  const al=addrList(),cur=curAddr();
+  $('addr').innerHTML=al.length?al.map(a=>`<option value="${a.v}" ${a.v===cur?'selected':''}>${esc(a.t)}</option>`).join(''):'<option value="">Sin red detectada</option>';
+  $('inv').textContent=invite();
+  const ad=(info.addresses||[]).find(a=>a.ip===cur),kind=cur===pubIp&&pubIp?'pub':ad?ad.kind:'';
+  $('addr-note').textContent=kind==='tailscale'?'Tailscale: tus amigos también deben tenerlo y estar en tu red.':kind==='vpn'?`VPN (${ad.label}): tus amigos deben estar en la misma red VPN.`:kind==='pub'?`Abre el puerto ${info.port||27015} (UDP) en tu router hacia este PC.`:kind==='lan'?'Red local: solo funciona para quien esté en tu misma red. Para internet usa Tailscale, una VPN o tu IP pública.':'';
+  // sala
+  const me=info.steamName||'Tú';
+  let h=`<div class="slot me"><div class="av">${esc(me[0].toUpperCase())}</div><div><b>${esc(me)}</b><small>Anfitrión · ${S.maxplayers} jugadores máx.</small></div></div>`;
+  for(const n of (room.players||[]).filter(n=>n!==me&&n!==info.steamName))h+=`<div class="slot guest"><div class="av">${esc(n[0].toUpperCase())}</div><div><b style="color:var(--text)">${esc(n)}</b><small>En la partida</small></div></div>`;
+  $('slots').innerHTML=h;
+  $('friends').innerHTML=S.friends.length?S.friends.map((f,i)=>`<div class="friend"><div class="nm">${esc(f)}</div><button class="mini" data-inv="${i}">Copiar invitación</button><button class="mini" data-del="${i}">✕</button></div>`).join(''):'<div class="note">Aún no hay amigos guardados.</div>';
+  $('sum-t').textContent='Black Mesa · '+chapterTitle();
+  $('sum-s').textContent=`${S.maxplayers} jugadores · ${S.cheats?'trucos on':'sin trucos'} · fuego amigo ${S.friendlyfire?'on':'off'} · respawn ${S.respawn}s${S.password?' · con contraseña':''}`;
+  $('d-steam').classList.toggle('ok',!!info.steamRunning);$('t-steam').textContent=info.steamRunning?'Steam conectado':'Steam cerrado';
+  $('steam-warn').classList.toggle('hidden',!!info.steamRunning);
+  // componentes
+  const miss=(info.components||[]).filter(c=>!c.ok);
+  const noSrv=!info.serverPath;
+  $('need-card').classList.toggle('hidden',!(noSrv||miss.length));
+  $('need-note').textContent=noSrv?'Falta "Black Mesa Dedicated Server" (gratis). En Steam: Biblioteca → Herramientas, instálalo y reabre el Hub.':'Falta: '+miss.map(c=>c.name).join(', ')+'. Se descargan de las páginas oficiales de SourceMod y SourceCoop (unos 70 MB).';
+  $('need-install').classList.toggle('hidden',noSrv);
+  setRunning(running,srvRunning);
+  renderJoin();
+}
+const room={players:[]};
+function setRunning(r,s){
+  running=r;srvRunning=!!s;
+  $('d-game').classList.toggle('ok',r);$('t-game').textContent=r?'Juego abierto':'Juego cerrado';
+  $('d-srv').classList.toggle('ok',srvRunning);$('t-srv').textContent=srvRunning?'Servidor encendido':'Servidor apagado';
+  $('stop').classList.toggle('hidden',!r);$('stop-srv').classList.toggle('hidden',!srvRunning);
+  const st=!!info.steamRunning,ready=!!info.serverPath&&!(info.components||[]).some(c=>!c.ok);
+  $('go-host').disabled=r||!ready||!st||!(info.chapters||[]).length;$('go-join').disabled=r||!parseJoin($('j-text').value)||!st||!info.clientPath;
+  $('go-host').textContent=r?'En curso…':!ready?'Falta preparar el servidor':!st?'Abre Steam primero':srvRunning?'Reiniciar partida':'Iniciar partida';
+}
+function parseJoin(t){
+  t=t||'';
+  let m=t.match(/connect\s+([A-Za-z0-9\.\-]+(?::\d{2,5})?)/i)||t.match(/\b(\d{1,3}(?:\.\d{1,3}){3}(?::\d{2,5})?)\b/);
+  if(!m)return null;
+  const pw=(t.match(/password\s+(\S+)/i)||[])[1]||'';
+  return {ip:m[1],password:pw};
+}
+function renderJoin(){
+  const j=parseJoin($('j-text').value);$('j-id').textContent=j?('connect '+j.ip+(j.password?' · con contraseña':'')):'Sin dirección';$('j-idline').classList.toggle('ok',!!j);
+  const jt=$('j-text');jt.style.height='46px';jt.style.height=Math.min(jt.scrollHeight,120)+'px';
+  $('go-join').disabled=running||!j||!info.steamRunning||!info.clientPath;
+  $('hosts').innerHTML=(S.hosts||[]).map((h,i)=>`<div class="friend"><div class="av">${esc((h.name||'?')[0].toUpperCase())}</div><div class="nm">${esc(h.name)}<span class="id">${esc(h.ip)}${h.password?' · contraseña':''}</span></div><button class="btn sm pri" data-use="${i}">Unirme</button><button class="mini" data-delh="${i}">✕</button></div>`).join('')||'<div class="note">Se guardan al unirte.</div>';
+}
+
+// eventos
+$('chapters').onclick=e=>{const b=e.target.closest('.ch');if(!b)return;S.map=b.dataset.m;save();render()};
+for(const [id,k] of [['r-cheats','cheats'],['r-ff','friendlyfire'],['r-autocopy','autoCopy'],['r-minimize','minimize']])$(id).onchange=e=>{S[k]=e.target.checked;save();render()};
+$('r-respawn').oninput=e=>{S.respawn=Math.max(0,Math.min(60,+e.target.value||0));save();render()};
+$('r-max').oninput=e=>{S.maxplayers=+e.target.value;save();$('v-max').textContent=S.maxplayers;render()};
+$('r-extra').oninput=e=>{S.extra=e.target.value;save();$('cmds').innerHTML=['<span class="c">// se escriben en server.cfg al iniciar</span>',...rulesLines(),...S.extra.split(/\r?\n/).filter(s=>s.trim())].join('\n')};
+$('r-pass').oninput=e=>{S.password=e.target.value.replace(/[^A-Za-z0-9_\-\.!@#$%^&*]/g,'');save();$('inv').textContent=invite()};
+$('r-name').oninput=e=>{S.hostname=e.target.value;save()};
+$('r-gfx').onchange=e=>{S.gfx=e.target.value;save()};
+$('r-screen').onclick=e=>{const b=e.target.closest('button');if(!b)return;S.screen=b.dataset.v;save();render()};
+$('r-survival').onclick=e=>{const b=e.target.closest('button');if(!b)return;S.survival=+b.dataset.v;save();render()};
+$('addr').onchange=e=>{S.addr=e.target.value;save();render()};
+$('addr-pub').onclick=async()=>{
+  $('addr-pub').disabled=true;const r=await api('publicip',{});$('addr-pub').disabled=false;
+  if(!r.ok){toast(r.error||'No pude obtener tu IP pública');return}
+  pubIp=r.ip;S.addr=r.ip;save();render();toast('IP pública: '+r.ip);
+};
+$('copy-invite').onclick=()=>copy(invite(),'Invitación copiada, pégala en Discord');
+$('copy-connect').onclick=()=>copy(`connect ${curAddr()}:${info.port||27015}`,'Comando copiado');
+$('f-add').onclick=()=>{const v=$('f-name').value.trim();if(!v)return;S.friends.push(v);$('f-name').value='';save();render()};
+$('f-name').onkeydown=e=>{if(e.key==='Enter')$('f-add').click()};
+$('friends').onclick=e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.inv!==undefined)copy(`Oye ${S.friends[b.dataset.inv]}, entra:\n`+invite(),'Invitación copiada');
+  if(b.dataset.del!==undefined){S.friends.splice(b.dataset.del,1);save();render()}};
+$('go-host').onclick=async()=>{
+  if(S.autoCopy)await copy(invite(),'Invitación copiada');else toast('Iniciando…');
+  const r=await api('launch',{mode:'host',...S,minimize:S.minimize!==false});
+  if(!r.ok)toast(r.error||'No se pudo iniciar');else{setRunning(true,true);showLoading('Iniciando partida','progress')}
+};
+$('stop').onclick=async()=>{if(!confirm('¿Cerrar Black Mesa? El servidor sigue encendido.'))return;await api('stop',{});setRunning(false,srvRunning);toast('Juego cerrado')};
+$('stop-srv').onclick=async()=>{if(!confirm('¿Detener el servidor? Se cierra la partida para todos.'))return;busyOn('Deteniendo…');await api('stopserver',{});busyOff();setRunning(false,false);toast('Servidor detenido')};
+$('j-text').oninput=()=>{S.lastJoin=$('j-text').value;save();renderJoin()};
+$('j-copy').onclick=()=>{const j=parseJoin($('j-text').value);if(j)copy('connect '+j.ip,'Comando copiado')};
+async function joinNow(j){
+  if(!(S.hosts||[]).some(h=>h.ip===j.ip)){const n=prompt('¿Cómo se llama tu amigo? (para guardarlo)','')||'Amigo';S.hosts=[...(S.hosts||[]),{name:n,ip:j.ip,password:j.password}];save()}
+  const r=await api('launch',{mode:'join',ip:j.ip,password:j.password,screen:S.screen,gfx:S.gfx,minimize:S.minimize!==false});
+  if(!r.ok)toast(r.error||'No se pudo iniciar');else{setRunning(true,srvRunning);showLoading('Entrando a la partida','progress')}
+}
+$('go-join').onclick=()=>{const j=parseJoin($('j-text').value);if(j)joinNow(j)};
+$('hosts').onclick=e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.use!==undefined){const h=S.hosts[b.dataset.use];$('j-text').value=(h.password?'password '+h.password+'\n':'')+'connect '+h.ip;S.lastJoin=$('j-text').value;save();renderJoin();if(!$('go-join').disabled)joinNow({ip:h.ip,password:h.password||''})}
+  if(b.dataset.delh!==undefined){S.hosts.splice(b.dataset.delh,1);save();renderJoin()}};
+function tab(t){
+  for(const v of ['host','reglas','join','cmds','mods','ajustes']){$('view-'+v).classList.toggle('hidden',t!==v);$('tab-'+v).classList.toggle('on',t===v)}
+  $('dock').classList.toggle('hidden',t!=='host'&&t!=='reglas');
+  if(t==='cmds')renderCmds();
+  if(t==='mods'){renderSites();renderEss()}
+  if(t==='ajustes'){loadHealth();renderAbout()}
+}
+for(const t of ['host','join','reglas','cmds','mods','ajustes'])$('tab-'+t).onclick=()=>tab(t);
+$('dock-rules').onclick=()=>tab('reglas');
+
+// ---- mods / enlaces / esenciales ----
+const CATS=[
+  {id:'maps',t:'Mapas y Workshop',items:[
+    {t:'Workshop de Black Mesa',d:'Mapas y campañas de la comunidad (suscríbete antes de entrar)',u:'https://steamcommunity.com/app/362890/workshop/'},
+    {t:'Comunidad de Black Mesa',d:'Foros y guías en Steam',u:'https://steamcommunity.com/app/362890'}]},
+  {id:'coop',t:'SourceCoop',items:[
+    {t:'SourceCoop en GitHub',d:'El mod que hace el co-op de la campaña',u:'https://github.com/ampreeT/SourceCoop'},
+    {t:'Comandos y ajustes de SourceCoop',d:'Variables del servidor, votaciones y revivir',u:'https://github.com/ampreeT/SourceCoop/wiki/Features-&-Configuration'},
+    {t:'Crear mapas para SourceCoop',d:'Guía para autores de mapas',u:'https://github.com/ampreeT/SourceCoop/wiki/Authoring-maps-for-SourceCoop'}]},
+  {id:'sm',t:'SourceMod',items:[
+    {t:'SourceMod',d:'Plataforma de plugins del servidor',u:'https://www.sourcemod.net/'},
+    {t:'Wiki de AlliedModders',d:'Documentación de SourceMod y Metamod',u:'https://wiki.alliedmods.net/'}]},
+  {id:'official',t:'Oficial',items:[
+    {t:'Tienda de Steam',d:'Black Mesa en Steam',u:'https://store.steampowered.com/app/362890/Black_Mesa/'},
+    {t:'Valve Developer Community',d:'Comandos de consola de Source',u:'https://developer.valvesoftware.com/wiki/Console_Command_List'}]}];
+let modCat='maps';
+function renderSites(){
+  $('mod-cats').innerHTML=CATS.map(c=>`<button data-c="${c.id}" class="${c.id===modCat?'on':''}">${c.t}<em>${c.items.length}</em></button>`).join('');
+  const c=CATS.find(x=>x.id===modCat);
+  $('mod-sites').innerHTML=c.items.map((x,i)=>`<div class="linkrow"><div class="nm"><b>${esc(x.t)}</b><span>${esc(x.d)}</span><em>${esc(new URL(x.u).host)}</em></div><button class="btn sm pri" data-i="${i}">Abrir ↗</button></div>`).join('');
+}
+$('mod-cats').onclick=e=>{const b=e.target.closest('button');if(!b)return;modCat=b.dataset.c;renderSites()};
+$('mod-sites').onclick=async e=>{const b=e.target.closest('button');if(!b)return;const it=CATS.find(x=>x.id===modCat).items[b.dataset.i];const r=await api('openurl',{url:it.u});if(!r.ok)toast(r.error||'No se pudo abrir')};
+const LOCK='<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg>';
+function renderEss(){
+  const c=info.components||[];
+  $('mod-ess').innerHTML=c.map(x=>`<div class="friend"><div class="av lock">${LOCK}</div><div class="nm">${esc(x.name)}<span class="id">${esc(x.detail)}</span></div>${x.ok?'<span class="okmark">✓</span>':'<span class="note" style="margin:0;color:var(--bad)">Falta</span>'}</div>`).join('')||'<div class="note">Falta el servidor dedicado.</div>';
+  $('mod-fix').classList.toggle('hidden',!c.some(x=>!x.ok));
+}
+$('mod-fix').onclick=()=>startInstall();
+$('need-install').onclick=()=>startInstall();
+
+// ---- comandos ----
+const CHAT=[
+  {g:'Para todos',items:[['/tp nombre','Ir con alguien'],['/s','Guardar posición'],['/p','Volver a ella'],['/kill','Morir'],['/jugadores','Quién está dentro'],['/ayuda','Lista de comandos'],['/stuck','Atascado: ir al checkpoint (SourceCoop)'],['/coopmenu','Menú co-op (SourceCoop)']]},
+  {g:'Solo anfitrión',items:[['/god','Inmortal'],['/noclip','Atravesar paredes'],['/notarget','Los enemigos te ignoran'],['/armas','Todas las armas'],['/give escopeta','Dar un arma o ítem'],['/restart','Reiniciar el mapa'],['/map bm_c1a1a','Cambiar de mapa'],['/gravedad baja','o normal'],['/velocidad rapida','o normal'],['/respawn 5','Segundos de reaparición']]}];
+function renderChat(){
+  $('chat-cmds').innerHTML=CHAT.map(c=>`<div class="cg"><h3>${c.g}</h3>${c.items.map(i=>`<button class="cc" data-c="${esc(i[0])}"><code>${esc(i[0])}</code><span>${esc(i[1])}</span></button>`).join('')}</div>`).join('');
+}
+$('chat-cmds').onclick=e=>{const b=e.target.closest('.cc');if(b)copy(b.dataset.c,'Copiado: '+b.dataset.c)};
+const WEAPONS=[['Crowbar','crowbar'],['Pistola','pistola'],['Magnum .357','magnum'],['MP5','mp5'],['Escopeta','escopeta'],['Ballesta','ballesta'],['RPG','rpg'],['Tau','tau'],['Gluon','gluon'],['Hornet','hornet'],['Granadas','granadas'],['Satchel','satchel'],['Tripmine','tripmine'],['Snarks','snarks']];
+const me=()=>info.steamId;
+const dos=(a,arg)=>`hub_do "${me()}" ${a}${arg?' '+arg:''}`;   // el SteamID va entre comillas: la consola de Source parte los tokens en los dos puntos
+const nextCh=()=>{const l=info.chapters||[];const i=l.findIndex(c=>c.map===S.map);return (l[Math.min(i+1,l.length-1)]||{}).map||S.map};
+const GROUPS=[
+ {t:'Partida',items:[{l:'Reiniciar mapa',c:()=>['changelevel '+(room.map||S.map)]},{l:'Matar (kill)',c:()=>[dos('kill')],d:1}],extra:'chapter'},
+ {t:'Jugador',items:[{l:'God (inmortal)',c:()=>[dos('god')]},{l:'Noclip (atravesar)',c:()=>[dos('noclip')]},{l:'Notarget (enemigos ignoran)',c:()=>[dos('notarget')]},
+   {l:'Vida al máximo',c:()=>[dos('heal')]},{l:'Todas las armas',c:()=>[dos('armas')]},{l:'Activar trucos',c:()=>['sv_cheats 1']},{l:'Quitar trucos',c:()=>['sv_cheats 0'],d:1}]},
+ {t:'Dar',items:[...WEAPONS.map(w=>({l:w[0],c:()=>[dos('give',w[1])]})),{l:'Botiquín',c:()=>[dos('give','botiquin')]},{l:'Batería',c:()=>[dos('give','bateria')]}]},
+ {t:'Quitar',items:[{l:'Quitar todas las armas',c:()=>[dos('strip')],d:1}]},
+ {t:'Mundo',items:[{l:'Gravedad baja',c:()=>['sv_gravity 200']},{l:'Gravedad normal',c:()=>['sv_gravity 600']},{l:'Velocidad x2',c:()=>['hub_speed 2']},{l:'Velocidad normal',c:()=>['hub_speed 1']},
+   {l:'Reaparición rápida',c:()=>['sourcecoop_respawntime 0.1']},{l:'Reaparición normal',c:()=>['sourcecoop_respawntime '+S.respawn]}]}];
+async function sendCmd(cmds,label){
+  if(!srvRunning){toast('Primero inicia la partida');return}
+  busyOn('Aplicando '+(label||'comandos')+'…');
+  try{
+    const r=await api('cmd',{cmds});
+    if(!r.ok){toast(r.error||'No se pudo enviar');return}
+    let ok=false;const t0=Date.now();
+    while(Date.now()-t0<8000){await sleep(250);try{if((await api('cmdstatus?id='+r.id)).done){ok=true;break}}catch(e){}}
+    toast(ok?(label||'Comando')+' aplicado ✓':'El servidor no respondió. Mira Ajustes → Salud');
+  }catch(e){toast('El Hub no responde')}
+  finally{busyOff()}
+}
+function renderCmds(){
+  renderChat();
+  $('cmd-groups').innerHTML=GROUPS.map((g,gi)=>`<section class="card"><h2>${g.t}</h2><div class="cbtns">`+
+    g.items.map((it,i)=>`<button class="btn ${it.d?'danger':''}" data-g="${gi}" data-i="${i}">${it.l}</button>`).join('')+
+    (g.extra==='chapter'?`<select id="go-ch" style="width:auto">${(info.chapters||[]).map(c=>`<option value="${c.map}">${esc(TITLES[c.map]||c.map)}</option>`).join('')}</select><button class="btn" id="go-ch-btn">Ir al capítulo</button>`:'')+
+    `</div></section>`).join('');
+  $('sc-list').innerHTML=(S.shortcuts||[]).length?(S.shortcuts).map((s,i)=>`<span style="display:inline-flex"><button class="btn" data-sc="${i}" style="border-radius:8px 0 0 8px">${esc(s.name)}</button><button class="btn" data-scd="${i}" style="border-radius:0 8px 8px 0;border-left:0;padding:7px 9px">✕</button></span>`).join(''):'<span class="note">Sin atajos todavía.</span>';
+}
+$('cmd-groups').onclick=e=>{
+  const b=e.target.closest('button');if(!b)return;
+  if(b.id==='go-ch-btn'){const m=$('go-ch').value;return sendCmd(['changelevel '+m],'Cambio a '+(TITLES[m]||m))}
+  const it=GROUPS[b.dataset.g]?.items[b.dataset.i];if(it)sendCmd(it.c(),it.l);
+};
+$('sc-add').onclick=()=>{const n=$('sc-name').value.trim(),c=$('sc-cmds').value.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);if(!n||!c.length)return toast('Pon nombre y comando');
+  S.shortcuts=[...(S.shortcuts||[]),{name:n,cmds:c}];$('sc-name').value='';$('sc-cmds').value='';save();renderCmds()};
+$('sc-list').onclick=e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.sc!==undefined){const s=S.shortcuts[b.dataset.sc];sendCmd(s.cmds,s.name)}
+  if(b.dataset.scd!==undefined){S.shortcuts.splice(b.dataset.scd,1);save();renderCmds()}};
+$('tp-go').onclick=()=>{const n=$('tp-name').value.trim().replace(/[\"\r\n;]/g,'');if(!n)return toast('Escribe un nombre');sendCmd([dos('tp','"'+n+'"')],'/tp '+n)};
+$('tp-save').onclick=()=>sendCmd([dos('savepos')],'Posición guardada');
+$('tp-load').onclick=()=>sendCmd([dos('loadpos')],'/p');
+$('free-go').onclick=()=>{const c=$('free').value.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);if(c.length)sendCmd(c,'Consola')};
+
+// ---- cargas: arranque de partida e instalación (misma pantalla) ----
+const busyOn=t=>{$('busy-t').textContent=t;$('busy').classList.remove('hidden')},busyOff=()=>$('busy').classList.add('hidden');
+let loadT;
+function hideLoading(){clearTimeout(loadT);$('loading').classList.add('hidden')}
+function showLoading(title,endpoint){
+  $('ld-title').textContent=title;$('ld-sub').textContent='';
+  $('ld-steps').innerHTML='';$('ld-err').classList.add('hidden');$('ld-close').classList.add('hidden');
+  $('ld-spin').classList.remove('hidden');$('ld-bar').style.width='4%';$('loading').classList.remove('hidden');pollLoading(endpoint);
+}
+async function pollLoading(endpoint){
+  clearTimeout(loadT);
+  const inst=endpoint==='installstatus';
+  let r;try{r=await api(endpoint)}catch(e){loadT=setTimeout(()=>pollLoading(endpoint),1000);return}
+  if(!r.active){hideLoading();return}
+  const st=r.steps||[],n=st.filter(x=>x.done).length,cur=st.findIndex(x=>!x.done);
+  $('ld-steps').innerHTML=st.map((x,i)=>`<li class="${x.done?'ok':i===cur?'cur':''}"><i></i>${esc(x.label)}</li>`).join('');
+  $('ld-bar').style.width=Math.max(4,Math.round(n/Math.max(st.length,1)*100))+'%';
+  if(r.error){$('ld-spin').classList.add('hidden');$('ld-title').textContent='No se pudo terminar';$('ld-err').textContent=r.error;$('ld-err').classList.remove('hidden');$('ld-close').classList.remove('hidden');if(inst){info=await api('state');render()}else setRunning(false,srvRunning);return}
+  if(inst?r.finished:r.done){
+    $('ld-spin').classList.add('hidden');$('ld-title').textContent=inst?'¡Servidor listo!':'¡Todo listo!';$('ld-bar').style.width='100%';
+    if(inst){info=await api('state');render();renderEss()}else setRunning(true,true);
+    loadT=setTimeout(hideLoading,1300);return;
+  }
+  if(!inst&&r.elapsed>90){$('ld-sub').textContent='Está tardando más de lo normal. Puedes ocultar esta pantalla.';$('ld-close').classList.remove('hidden')}
+  loadT=setTimeout(()=>pollLoading(endpoint),inst?900:450);
+}
+$('ld-close').onclick=hideLoading;
+// ---- SourceCoop: aviso mientras no tenga arreglo para la actualización del 16-nov, y actualización cuando salga ----
+let coop={};
+async function loadCoop(check){
+  try{coop=await api('srccoop'+(check?'?check=1':''));renderCoop(check)}catch(e){}
+}
+function renderCoop(checked){
+  const show=!!coop.waiting||!!coop.outdated;
+  $('coop-card').classList.toggle('hidden',!show);
+  $('coop-update').classList.toggle('hidden',!coop.outdated);
+  $('coop-check').classList.toggle('hidden',!!coop.outdated);
+  $('coop-note').textContent=coop.outdated?`Hay una versión nueva: SourceCoop ${coop.latest} (tienes ${coop.tag}). Actualiza y prueba si ya entras a la campaña.`
+    :`Black Mesa se actualizó el 16 de noviembre y SourceCoop ${coop.tag} aún no lo soporta: el servidor arranca y entras, pero Spawn se queda en «Spawning…». Su autor está preparando el arreglo.${checked?' Todavía no hay versión nueva.':''}`;
+}
+$('coop-check').onclick=async()=>{$('coop-check').disabled=true;await loadCoop(true);$('coop-check').disabled=false;if(!coop.outdated)toast(coop.error?'No pude consultar GitHub':'Todavía no hay versión nueva')};
+$('coop-link').onclick=async()=>{await api('openurl',{url:'https://github.com/ampreeT/SourceCoop/issues/374'})};
+$('coop-update').onclick=()=>{if(srvRunning){toast('Detén el servidor primero');return}startInstall(true)};
+async function startInstall(update){
+  const r=await api('install',{update:!!update});
+  if(!r.ok){toast(r.error||'No se pudo instalar');return}
+  showLoading('Preparando el servidor co-op','installstatus');
+}
+$('lost-retry').onclick=async()=>{try{await api('ping');pingFail=0;$('lost').classList.add('hidden');toast('Conectado otra vez')}catch(e){toast('El Hub sigue sin responder')}};
+$('lost-close').onclick=()=>window.close();
+$('steam-open').onclick=async()=>{await api('steam',{});toast('Abriendo Steam…')};
+
+// ---- salud ----
+function renderAbout(){
+  $('ver').textContent='v'+(info.version||'?');
+  $('logo-btn').title='Black Mesa Hub v'+(info.version||'?')+' · clic para cambiar el logo';
+  $('changelog').innerHTML=(info.changelog||[]).map((c,i)=>`<details ${i===0?'open':''}><summary>v${esc(c.version)}<em>${esc(c.date||'')}</em></summary><ul>${(c.notes||[]).map(n=>`<li>${esc(n)}</li>`).join('')}</ul></details>`).join('')||'<div class="note">Sin novedades registradas.</div>';
+}
+$('diag-copy').onclick=async()=>{try{const r=await api('diag');await copy(r.text,'Diagnóstico copiado')}catch(e){toast('No pude generar el diagnóstico')}};
+function renderHealth(items){
+  $('hl-list').innerHTML=items.map(i=>`<li class="${i.level}"><i></i><div><b>${esc(i.label)}</b><span>${i.level==='ok'?'':esc(i.detail||'')}</span></div></li>`).join('');
+  const bad=items.filter(i=>i.level==='bad').length,warn=items.filter(i=>i.level==='warn').length;
+  $('hl-dot').className='dot'+(bad?'':' ok');
+  $('hl-sum').textContent=bad?`${bad} problema${bad>1?'s':''}: pulsa Reparar todo`:warn?'Todo en orden (con avisos)':'Todo en orden';
+  return bad;
+}
+async function loadHealth(){try{return renderHealth((await api('health')).items||[])}catch(e){$('hl-sum').textContent='El Hub no responde'}}
+$('hl-refresh').onclick=async()=>{await loadHealth();toast('Revisado')};
+$('hl-repair').onclick=async()=>{
+  const r=await api('repair',{});
+  if(!r.ok){toast(r.error||'No se pudo reparar');return}
+  info=await api('state');render();
+  if(r.needsInstall){startInstall();return}
+  const bad=renderHealth(r.items);toast(bad?'Reparado en parte: revisa lo que sigue en rojo':'Todo reparado ✓');
+};
+$('hl-undo').onclick=async()=>{
+  if(!confirm('¿Quitar de server.cfg y admins las líneas del Hub, y el plugin de comandos? SourceMod y SourceCoop se quedan instalados.'))return;
+  const r=await api('undo',{});
+  if(!r.ok){toast(r.error||'No se pudo deshacer');return}
+  info=await api('state');render();renderHealth(r.items);toast('Cambios deshechos');
+};
+
+// ---- logos ----
+const LOGOS={
+  hex:{n:'Hexágono',s:'<path d="M32 4 56 18v28L32 60 8 46V18z" fill="none" stroke="#ffa826" stroke-width="4" stroke-linejoin="round"/><circle cx="32" cy="32" r="8" fill="none" stroke="#ffa826" stroke-width="4"/><path d="M32 13v11M32 40v11M13 32h11M40 32h11" stroke="#ffa826" stroke-width="4" stroke-linecap="round"/>'},
+  lambda:{n:'Lambda',s:'<circle cx="32" cy="32" r="27" fill="none" stroke="#ffa826" stroke-width="4"/><path d="M20 16h8l16 32M30 32 18 48" fill="none" stroke="#ffa826" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>'},
+  coop:{n:'Co-op',s:'<circle cx="23" cy="32" r="17" fill="none" stroke="#ffa826" stroke-width="4.5"/><circle cx="41" cy="32" r="17" fill="none" stroke="#e8eaee" stroke-width="4.5"/>'},
+  bolt:{n:'Rayo',s:'<rect x="4" y="4" width="56" height="56" rx="14" fill="#ffa826"/><path d="M37 9 17 36h13l-4 19 21-28H34z" fill="#1a1100"/>'}
+};
+const logoSvg=id=>`<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">${LOGOS[id].s}</svg>`;
+function applyLogo(){
+  const id=LOGOS[S.logo]?S.logo:'hex';
+  $('logo-btn').innerHTML=logoSvg(id);
+  $('fav').href='data:image/svg+xml,'+encodeURIComponent(logoSvg(id));
+  $('logo-pop').innerHTML=Object.keys(LOGOS).map(k=>`<button data-l="${k}" class="${k===id?'on':''}">${logoSvg(k)}<span>${LOGOS[k].n}</span></button>`).join('');
+}
+$('logo-btn').onclick=e=>{e.stopPropagation();$('logo-pop').classList.toggle('hidden')};
+$('logo-pop').onclick=e=>{const b=e.target.closest('button');if(!b)return;S.logo=b.dataset.l;save();applyLogo();$('logo-pop').classList.add('hidden');toast('Logo: '+LOGOS[S.logo].n)};
+document.addEventListener('click',e=>{if(!e.target.closest('.logo'))$('logo-pop').classList.add('hidden')});
+
+(async()=>{
+  info=await api('state');
+  S={...DEF,...(info.settings||{})};
+  if(S.survival!==1)S.survival=0;
+  const ch=(info.chapters||[]);if(ch.length&&!ch.some(c=>c.map===S.map))S.map=ch[0].map;
+  applyLogo();renderAbout();loadCoop(true);
+  $('j-text').value=S.lastJoin||'';
+  running=info.running;srvRunning=info.serverRunning;render();
+  if(!info.clientPath)toast('No encontré Black Mesa');
+  setInterval(async()=>{try{
+    const r=await api('ping');
+    const sc=r.steam!==info.steamRunning;info.steamRunning=r.steam;
+    const names=(r.players||[]).join('|'),changed=names!==room.players.join('|')||(r.port&&r.port!==info.port);if(r.port)info.port=r.port;room.players=r.players||[];room.map=r.map||'';
+    if(sc){$('d-steam').classList.toggle('ok',!!r.steam);$('t-steam').textContent=r.steam?'Steam conectado':'Steam cerrado';$('steam-warn').classList.toggle('hidden',!!r.steam)}
+    if(r.running!==running||r.server!==srvRunning||sc)setRunning(r.running,r.server);
+    if(changed)render();
+    pingFail=0;$('lost').classList.add('hidden')
+  }catch(e){if(++pingFail>=3)$('lost').classList.remove('hidden')}},3000);
+})();
+</script>
+</body>
+</html>

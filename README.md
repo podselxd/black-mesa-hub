@@ -13,8 +13,9 @@ La campaña **ya se puede jugar** (probado el 18-nov-2026 con SourceMod 7260, So
 Lo que falta por probar a fondo: los comandos de chat dentro de una partida y entrar con un amigo. Detalles en [NOTAS.md](NOTAS.md).
 ## Qué hace
 
-- **Crear partida** — eliges capítulo y pulsas *Iniciar partida*: el Hub arranca el servidor dedicado, abre Black Mesa y entra por ti. Muestra quién está dentro.
+- **Crear partida** — eliges capítulo y pulsas *Iniciar partida*: el Hub arranca el servidor dedicado (sin ventana de consola), abre Black Mesa sin su consola y entras **directo a la partida**, sin pasar por el panel Spawn/Spectate. Muestra quién está dentro.
 - **Invitación** — copia `connect IP:puerto` (con contraseña si la pones). Detecta Tailscale, otras VPN (Radmin, Hamachi…), la red local, y con un botón consulta tu IP pública. Si el puerto 27015 está ocupado usa el siguiente libre.
+- **Invitar por Steam** — copia la invitación y abre tu lista de amigos de Steam para pegarla en su chat. Además, el anfitrión entra al servidor por la misma dirección que eliges para la invitación: si tus amigos pueden alcanzarla (VPN, Tailscale o IP pública) y no hay contraseña, Steam puede mostrarles «Unirse a la partida» en tu perfil (no lo he podido comprobar).
 - **Unirme** — pegas la invitación (o la IP) de tu amigo y entras.
 - **Reglas** — trucos, fuego amigo, supervivencia (On/Off), reaparición, jugadores máximos, contraseña, nombre del servidor, pantalla, gráficos y comandos extra.
 - **Comandos** — comandos de chat y botones que se mandan al servidor.

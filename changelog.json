@@ -1,6 +1,15 @@
 [
     {
         "date":  "2026-11-19",
+        "version":  "0.1.3",
+        "notes":  [
+                      "Entras directo a la partida: el plugin hace solo el «Spawn» (jointeam 0). Se puede apagar con hub_autojoin 0.",
+                      "Ya no se abre la consola del juego encima ni queda una ventana del servidor detrás: el servidor corre oculto.",
+                      "Invitar por Steam: copia la invitación y abre tu lista de amigos. El anfitrión entra por la dirección elegida para que Steam pueda anunciarla."
+                  ]
+    },
+    {
+        "date":  "2026-11-19",
         "version":  "0.1.2",
         "notes":  [
                       "La campaña ya se puede jugar: instala la última SourceMod (ahora la que recomienda SourceCoop) y deja que su Updater baje los datos nuevos de Black Mesa.",

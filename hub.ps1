@@ -86,7 +86,17 @@ public static class HubWin {
         }, IntPtr.Zero);
         return c;
     }
-    // Minimiza sin activar todas las ventanas visibles de un proceso (la consola del servidor dedicado)
+    // Oculta todas las ventanas visibles de un proceso (la consola del servidor dedicado: no hace falta verla)
+    public static int HideByPid(int pid) {
+        int c = 0;
+        EnumWindows(delegate(IntPtr h, IntPtr l) {
+            int p; GetWindowThreadProcessId(h, out p);
+            if (p == pid && IsWindowVisible(h)) { ShowWindow(h, 0); c++; }
+            return true;
+        }, IntPtr.Zero);
+        return c;
+    }
+    // Minimiza sin activar todas las ventanas visibles de un proceso
     public static int MinimizeByPid(int pid) {
         int c = 0;
         EnumWindows(delegate(IntPtr h, IntPtr l) {
@@ -177,7 +187,7 @@ function Get-GfxArgs($gfx) {
     switch ($gfx) { 'dxvk' { return @() } 'd3d9' { return @('-forceuid3d9', '-disabledxvk') } default { return @('-disabledxvk') } }
 }
 function Start-Client($client, $args2, $screen, $gfx) {
-    $a = @('-steam') + (Get-GfxArgs $gfx) + @('-console', '-condebug', '-novid') + (Get-ScreenArgs $screen) + $args2
+    $a = @('-steam') + (Get-GfxArgs $gfx) + @('-condebug', '-novid') + (Get-ScreenArgs $screen) + $args2
     Start-Process -FilePath (Join-Path $client 'bms.exe') -ArgumentList $a -WorkingDirectory $client | Out-Null
     Log ("cliente: " + ($a -join ' '))
 }
@@ -224,7 +234,9 @@ function Start-Game($client, $srv, $user, $p) {
     $proc = Start-Process -FilePath (Join-Path $srv 'srcds.exe') -ArgumentList $a -WorkingDirectory $srv -WindowStyle Minimized -PassThru
     $script:Launch.srvArgs = $a; $script:Launch.srvOffset = (Get-LogLength (Join-Path $srv 'bms\console.log')); $script:Launch.srvRestarted = $false
     $script:Launch.map = "$($p.map)"; $script:Launch.srvPid = $proc.Id; # El servidor no contesta a 127.0.0.1 (Source ignora el loopback si escucha en 0.0.0.0): el propio PC entra por su direccion de red
-    $self = @(Get-Addresses | Where-Object { $_.kind -eq 'lan' } | Select-Object -First 1); if (-not $self) { $self = @(Get-Addresses | Select-Object -First 1) }
+    $self = @(Get-Addresses | Where-Object { $_.ip -eq "$($p.addr)" } | Select-Object -First 1)
+    if (-not $self) { $self = @(Get-Addresses | Where-Object { $_.kind -eq 'lan' } | Select-Object -First 1) }
+    if (-not $self) { $self = @(Get-Addresses | Select-Object -First 1) }
     $selfIp = '127.0.0.1'; if ($self) { $selfIp = $self[0].ip }
     $script:Launch.ip = "${selfIp}:$gp"
     Log ("servidor: " + ($a -join ' '))
@@ -252,7 +264,7 @@ function Get-LaunchProgress($client, $srv, $user) {
     else {
         $sp = Get-ServerProc $srv
         $st = Get-ServerState $srv
-        if ($sp -and $elapsed -lt 40) { [HubWin]::MinimizeByPid($sp.Id) | Out-Null }
+        if ($sp -and $elapsed -lt 60) { [HubWin]::HideByPid($sp.Id) | Out-Null }
         # La primera vez, el Updater de SourceMod baja gamedata nuevo y pide reiniciar: el servidor se reinicia una sola vez, antes de abrir el juego
         if ($sp -and -not $L.srvRestarted -and -not $L.clientStarted -and $srv) {
             if ((Read-LogFrom (Join-Path $srv 'bms\console.log') $L.srvOffset) -match 'SourceMod has been updated, please reload') {
@@ -459,7 +471,11 @@ try {
                     }
                     catch { Send $ctx @{ ok = $false; error = $_.Exception.Message } }
                 }
-                '/api/steam' { Start-Process 'steam://open/main'; Send $ctx @{ ok = $true } }
+                '/api/steam' {
+                    $pSt = $null; try { $pSt = (Read-Body $ctx) | ConvertFrom-Json } catch {}
+                    if ($pSt -and $pSt.page -eq 'friends') { Start-Process 'steam://open/friends' } else { Start-Process 'steam://open/main' }
+                    Send $ctx @{ ok = $true }
+                }
                 '/api/quit' { Send $ctx @{ ok = $true }; return }
                 default { Send $ctx '{"error":"404"}' 'application/json' 404 }
             }

@@ -219,6 +219,7 @@ code{background:#0a0b0d;padding:1px 6px;border-radius:5px;font:12px Consolas,mon
       <div class="row">
         <button class="btn pri" id="copy-invite">Copiar invitación</button>
         <button class="btn" id="copy-connect">Solo connect</button>
+        <button class="btn" id="steam-invite" title="Copia la invitación y abre tu lista de amigos de Steam">Invitar por Steam</button>
       </div>
       <div class="note" id="addr-note"></div>
       <div class="slots" id="slots"></div>
@@ -466,6 +467,7 @@ $('addr-pub').onclick=async()=>{
   pubIp=r.ip;S.addr=r.ip;save();render();toast('IP pública: '+r.ip);
 };
 $('copy-invite').onclick=()=>copy(invite(),'Invitación copiada, pégala en Discord');
+$('steam-invite').onclick=async()=>{await copy(invite(),'Invitación copiada: pégala en el chat de tu amigo');await api('steam',{page:'friends'})};
 $('copy-connect').onclick=()=>copy(`connect ${curAddr()}:${info.port||27015}`,'Comando copiado');
 $('f-add').onclick=()=>{const v=$('f-name').value.trim();if(!v)return;S.friends.push(v);$('f-name').value='';save();render()};
 $('f-name').onkeydown=e=>{if(e.key==='Enter')$('f-add').click()};
@@ -475,7 +477,7 @@ $('friends').onclick=e=>{const b=e.target.closest('button');if(!b)return;
 $('go-host').onclick=async()=>{
   if($('go-host').disabled)return;$('go-host').disabled=true;
   if(S.autoCopy)await copy(invite(),'Invitación copiada');else toast('Iniciando…');
-  const r=await api('launch',{mode:'host',...S,minimize:S.minimize!==false});
+  const r=await api('launch',{mode:'host',...S,addr:curAddr(),minimize:S.minimize!==false});
   if(!r.ok)toast(r.error||'No se pudo iniciar');else{setRunning(true,true);showLoading('Iniciando partida','progress')}
 };
 $('stop').onclick=async()=>{if(!confirm('¿Cerrar Black Mesa? El servidor sigue encendido.'))return;await api('stop',{});setRunning(false,srvRunning);toast('Juego cerrado')};

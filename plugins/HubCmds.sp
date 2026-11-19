@@ -24,6 +24,8 @@ char g_szState[PLATFORM_MAX_PATH];
 float g_vSaved[MAXPLAYERS + 1][3];
 bool g_bSaved[MAXPLAYERS + 1];
 float g_fSpeed = 1.0;
+int g_iJoinTries[MAXPLAYERS + 1];
+ConVar g_cvAutoJoin;
 
 public void OnPluginStart()
 {
@@ -37,15 +39,40 @@ public void OnPluginStart()
 	RegServerCmd("hub_do", Cmd_HubDo, "hub_do <steamid> <accion> [argumento]");
 	RegServerCmd("hub_speed", Cmd_HubSpeed, "hub_speed <multiplicador>");
 
+	g_cvAutoJoin = CreateConVar("hub_autojoin", "1", "1 = mete solo a los jugadores en la partida (jointeam 0) en vez de dejarlos en el panel Spawn/Spectate", _, true, 0.0, true, 1.0);
+
 	HookEventEx("player_spawn", Event_Spawn);
 
 	CreateTimer(0.5, Timer_Queue, _, TIMER_REPEAT);
 	CreateTimer(2.0, Timer_State, _, TIMER_REPEAT);
+	CreateTimer(2.0, Timer_AutoJoin, _, TIMER_REPEAT);
+}
+
+public void OnMapStart()
+{
+	for (int i = 0; i <= MAXPLAYERS; i++)
+		g_iJoinTries[i] = 0;
+}
+
+// Black Mesa deja a los que entran como espectadores hasta pulsar SPAWN en un panel (su boton manda "jointeam 0"): aqui se hace solo.
+public Action Timer_AutoJoin(Handle timer)
+{
+	if (!g_cvAutoJoin.BoolValue)
+		return Plugin_Continue;
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		if (!IsClientInGame(i) || IsFakeClient(i) || GetClientTeam(i) != 1 || g_iJoinTries[i] >= 10)
+			continue;
+		FakeClientCommand(i, "jointeam 0");
+		g_iJoinTries[i]++;
+	}
+	return Plugin_Continue;
 }
 
 public void OnClientPutInServer(int client)
 {
 	g_bSaved[client] = false;
+	g_iJoinTries[client] = 0;
 }
 
 public void Event_Spawn(Event event, const char[] name, bool dontBroadcast)
@@ -330,6 +357,10 @@ void DoAction(int client, const char[] action, const char[] arg)
 		SetEntityHealth(client, 100);
 		Reply(client, "Vida al maximo");
 	}
+	else if (StrEqual(action, "join"))
+	{
+		FakeClientCommand(client, "jointeam 0");
+	}
 	else if (StrEqual(action, "tp"))
 	{
 		TeleportToPlayer(client, arg);
@@ -548,7 +579,7 @@ public Action Cmd_HubDo(int args)
 		PrintToServer("[Hub] %s no esta dentro de la partida.", steam);
 		return Plugin_Handled;
 	}
-	if (!IsPlayerAlive(client) && !StrEqual(action, "kill"))
+	if (!IsPlayerAlive(client) && !StrEqual(action, "kill") && !StrEqual(action, "join"))
 	{
 		PrintToServer("[Hub] %s esta muerto.", steam);
 		return Plugin_Handled;

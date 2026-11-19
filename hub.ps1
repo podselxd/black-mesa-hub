@@ -186,6 +186,9 @@ function Start-Game($client, $srv, $user, $p) {
     if (-not $client) { throw 'No encuentro Black Mesa. Instálalo desde Steam.' }
     if (-not (Get-Process -Name steam -ErrorAction SilentlyContinue)) { throw 'Steam está cerrado. Abre Steam y vuelve a intentar.' }
     if (Get-ClientProc) { throw 'Black Mesa ya está abierto. Ciérralo primero (botón Cerrar juego).' }
+    # un doble clic en Iniciar no debe apagar el servidor que acaba de arrancar
+    $prev = $script:Launch
+    if ($p.mode -ne 'join' -and $prev -and $prev.mode -ne 'join' -and -not $prev.handled -and ((Get-Date) - $prev.at).TotalSeconds -lt 120 -and (Get-ServerProc $srv)) { throw 'La partida ya se está iniciando.' }
     $mode = "$($p.screen)"; if (-not $mode) { $mode = 'full' }
     $script:Launch = @{ at = Get-Date; mode = "$($p.mode)"; minimize = ($p.minimize -ne $false); screen = $mode; gfx = "$($p.gfx)"; handled = $false; clientStarted = $false; seen = $false
         offset = (Get-LogLength (Get-ClientLogPath $client)); map = ''; ip = ''; pass = ''; srvPid = 0 }
@@ -335,8 +338,11 @@ try {
     while ($listener.IsListening) {
         $task = $listener.GetContextAsync()
         while (-not $task.Wait(1000)) {
-            if ($edgeProc) { if ($edgeProc.HasExited) { return } }
-            elseif (((Get-Date) - $lastPing).TotalSeconds -gt 180) { return }
+            # El proceso de Edge que lanzamos puede terminar enseguida (en la primera ejecucion, o si ya hay una ventana abierta con el mismo perfil se la pasa a esa):
+            # si el Hub muriera con el, la ventana se quedaria con «Se perdio la conexion». Se vive de los latidos de la pagina (cada 3 s).
+            $quiet = ((Get-Date) - $lastPing).TotalSeconds
+            if ($quiet -gt 900) { return }
+            if ($quiet -gt 150 -and $edgeProc -and $edgeProc.HasExited) { return }
         }
         $ctx = $task.Result
         try {

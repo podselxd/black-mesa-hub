@@ -1,1 +1,20 @@
-[{"version":"0.1.0","date":"2026-11-18","notes":["Primera versión: campaña de Black Mesa en cooperativo con SourceCoop.","Crea la partida, comparte la invitación (IP) y juega la campaña con tus amigos.","Comandos de chat: /tp, /s, /p, /kill, /god, /noclip, /give, /map y más (los de anfitrión solo para ti).","El Hub instala Metamod, SourceMod y SourceCoop en el servidor dedicado."]}]
+[
+    {
+        "date":  "2026-11-18",
+        "version":  "0.1.1",
+        "notes":  [
+                      "Arreglo: el Hub ya no se cierra solo dejando la ventana con «Se perdió la conexión con el Hub» (pasaba al abrirlo por primera vez o con otra ventana abierta).",
+                      "Un doble clic en Iniciar partida ya no reinicia el servidor que acaba de arrancar."
+                  ]
+    },
+    {
+        "version":  "0.1.0",
+        "date":  "2026-11-18",
+        "notes":  [
+                      "Primera versión: campaña de Black Mesa en cooperativo con SourceCoop.",
+                      "Crea la partida, comparte la invitación (IP) y juega la campaña con tus amigos.",
+                      "Comandos de chat: /tp, /s, /p, /kill, /god, /noclip, /give, /map y más (los de anfitrión solo para ti).",
+                      "El Hub instala Metamod, SourceMod y SourceCoop en el servidor dedicado."
+                  ]
+    }
+]

@@ -473,6 +473,7 @@ $('friends').onclick=e=>{const b=e.target.closest('button');if(!b)return;
   if(b.dataset.inv!==undefined)copy(`Oye ${S.friends[b.dataset.inv]}, entra:\n`+invite(),'Invitación copiada');
   if(b.dataset.del!==undefined){S.friends.splice(b.dataset.del,1);save();render()}};
 $('go-host').onclick=async()=>{
+  if($('go-host').disabled)return;$('go-host').disabled=true;
   if(S.autoCopy)await copy(invite(),'Invitación copiada');else toast('Iniciando…');
   const r=await api('launch',{mode:'host',...S,minimize:S.minimize!==false});
   if(!r.ok)toast(r.error||'No se pudo iniciar');else{setRunning(true,true);showLoading('Iniciando partida','progress')}

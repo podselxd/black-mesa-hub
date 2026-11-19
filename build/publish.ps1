@@ -64,10 +64,10 @@ if ($Release) {
     & gh release view "v$version" --repo $Repo 2>&1 | Out-Null
     if ($LASTEXITCODE -eq 0) {
         & gh release upload "v$version" $exe $zip --clobber --repo $Repo 2>&1 | Out-Null
-        & gh release edit "v$version" --notes-file $nf --prerelease --repo $Repo 2>&1 | Out-Null
+        & gh release edit "v$version" --notes-file $nf --repo $Repo 2>&1 | Out-Null
     }
-    else { & gh release create "v$version" $exe $zip --title "Black Mesa Hub v$version" --notes-file $nf --prerelease --target $sha --repo $Repo 2>&1 | Out-Null }
+    else { & gh release create "v$version" $exe $zip --title "Black Mesa Hub v$version" --notes-file $nf --latest --target $sha --repo $Repo 2>&1 | Out-Null }
     if ($LASTEXITCODE -ne 0) { throw 'gh release fallo.' }
     Remove-Item $nf -Force -ErrorAction SilentlyContinue
-    Write-Host "Release v$version (pre-lanzamiento)  ->  https://github.com/$Repo/releases" -ForegroundColor Green
+    Write-Host "Release v$version  ->  https://github.com/$Repo/releases" -ForegroundColor Green
 }

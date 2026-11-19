@@ -1,5 +1,14 @@
 [
     {
+        "date":  "2026-11-19",
+        "version":  "0.1.2",
+        "notes":  [
+                      "La campaña ya se puede jugar: instala la última SourceMod (ahora la que recomienda SourceCoop) y deja que su Updater baje los datos nuevos de Black Mesa.",
+                      "El servidor se reinicia una vez tras la primera instalación para aplicar esos datos.",
+                      "Quitado el aviso de «SourceCoop roto»."
+                  ]
+    },
+    {
         "date":  "2026-11-18",
         "version":  "0.1.1",
         "notes":  [

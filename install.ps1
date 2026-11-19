@@ -79,16 +79,11 @@ try {
     Complete-Step 'metamod'
 
     if (-not $comp.sourcemod) {
-        # SourceCoop avisa de que las versiones nuevas de SourceMod rompen sus detours (con la 7260 SourceCoop no carga: "Entity Outputs are disabled").
-        # La 7228 es la mas antigua que sigue publicada y funciona; si algun dia la retiran, se usa la siguiente mas antigua.
-        $page = $Utf8.GetString((Get-Web 'https://sm.alliedmods.net/smdrop/1.12/').DownloadData('https://sm.alliedmods.net/smdrop/1.12/'))
-        $names = @([regex]::Matches($page, 'sourcemod-1\.12\.0-git(\d+)-windows\.zip') | ForEach-Object { [int]$_.Groups[1].Value } | Sort-Object -Unique)
-        $pick = @($names | Where-Object { $_ -ge 7228 }) | Select-Object -First 1
-        if (-not $pick) { throw 'No encuentro una version de SourceMod compatible con SourceCoop.' }
-        $n = "sourcemod-1.12.0-git$pick-windows.zip"
+        # Desde el 19-nov-2026 SourceCoop recomienda la ultima build de SourceMod (la 7163 que fijaba ya no hace falta).
+        $n = Read-Latest 'https://sm.alliedmods.net/smdrop/1.12/sourcemod-latest-windows'
+        if ($n -notmatch '^sourcemod-[\d\.]+-git\d+-windows\.zip$') { throw "Nombre inesperado de SourceMod: $n" }
         Log "bajando $n"
         Expand-Safe (Get-Zip "https://sm.alliedmods.net/smdrop/1.12/$n" $n) $Bms
-        Disable-SmUpdater $Srv
     }
     Complete-Step 'sourcemod'
 

@@ -215,7 +215,6 @@ function Start-Game($client, $srv, $user, $p) {
     $sm = Join-Path $srv 'bms\addons\sourcemod'
     $sp = Join-Path $Root 'plugins\HubCmds.sp'; $smx = Join-Path $sm 'plugins\hubcmds.smx'
     if (-not (Test-Path $smx) -or (Get-Item $sp).LastWriteTimeUtc -gt (Get-Item $smx).LastWriteTimeUtc) { Install-HubPlugin $srv | Out-Null }
-    Disable-SmUpdater $srv
     try { if (Install-SrcCoopFix $srv) { Log 'aplicado el arreglo de gamedata de SourceCoop (PR 375)' } } catch { throw "SourceCoop 1.6 necesita un arreglo para la ultima version de Black Mesa y no pude descargarlo: $($_.Exception.Message)" }
     Set-ServerCfg $srv $cfgP
     if ($user) { Set-HostAdmin $srv $user.steamId }
@@ -223,6 +222,7 @@ function Start-Game($client, $srv, $user, $p) {
     $gp = Get-FreeGamePort
     $a = @('-console', '-nomessagebox', '-condebug', '-game', 'bms', '-ip', '0.0.0.0', '-port', [string]$gp, '+maxplayers', [string]$max, '+mp_teamplay', '1', '+map', $p.map)
     $proc = Start-Process -FilePath (Join-Path $srv 'srcds.exe') -ArgumentList $a -WorkingDirectory $srv -WindowStyle Minimized -PassThru
+    $script:Launch.srvArgs = $a; $script:Launch.srvOffset = (Get-LogLength (Join-Path $srv 'bms\console.log')); $script:Launch.srvRestarted = $false
     $script:Launch.map = "$($p.map)"; $script:Launch.srvPid = $proc.Id; # El servidor no contesta a 127.0.0.1 (Source ignora el loopback si escucha en 0.0.0.0): el propio PC entra por su direccion de red
     $self = @(Get-Addresses | Where-Object { $_.kind -eq 'lan' } | Select-Object -First 1); if (-not $self) { $self = @(Get-Addresses | Select-Object -First 1) }
     $selfIp = '127.0.0.1'; if ($self) { $selfIp = $self[0].ip }
@@ -253,6 +253,19 @@ function Get-LaunchProgress($client, $srv, $user) {
         $sp = Get-ServerProc $srv
         $st = Get-ServerState $srv
         if ($sp -and $elapsed -lt 40) { [HubWin]::MinimizeByPid($sp.Id) | Out-Null }
+        # La primera vez, el Updater de SourceMod baja gamedata nuevo y pide reiniciar: el servidor se reinicia una sola vez, antes de abrir el juego
+        if ($sp -and -not $L.srvRestarted -and -not $L.clientStarted -and $srv) {
+            if ((Read-LogFrom (Join-Path $srv 'bms\console.log') $L.srvOffset) -match 'SourceMod has been updated, please reload') {
+                $L.srvRestarted = $true
+                Log 'SourceMod actualizo su gamedata: se reinicia el servidor una vez'
+                Stop-BmsServer $srv
+                foreach ($f in 'hubcmd.txt', 'hubcmd.ack', 'hubstate.txt') { Remove-Item (Join-Path (Get-DataDir $srv) $f) -Force -ErrorAction SilentlyContinue }
+                $L.srvOffset = Get-LogLength (Join-Path $srv 'bms\console.log')
+                $proc2 = Start-Process -FilePath (Join-Path $srv 'srcds.exe') -ArgumentList $L.srvArgs -WorkingDirectory $srv -WindowStyle Minimized -PassThru
+                $L.srvPid = $proc2.Id; $L.at = Get-Date
+                $sp = $proc2; $st = $null
+            }
+        }
         $mapOk = [bool]($st -and $st.map -eq $L.map)
         $steps += @{ k = 'srv'; label = 'Encendiendo el servidor'; done = [bool]$sp }
         $steps += @{ k = 'plug'; label = 'Cargando SourceMod y SourceCoop'; done = [bool]$st }
@@ -401,7 +414,7 @@ try {
                 '/api/srccoop' {
                     $tag = Get-SrcCoopTag $srv; $latest = $null; $err = ''
                     if ($ctx.Request.QueryString['check'] -eq '1') { try { $latest = (Get-SrcCoopLatest).tag } catch { $err = $_.Exception.Message } }
-                    Send $ctx @{ tag = $tag; latest = $latest; outdated = [bool]($latest -and $tag -and $latest -ne $tag); waiting = [bool]($tag -eq 'v1.6' -and -not ($latest -and $latest -ne 'v1.6')); error = $err }
+                    Send $ctx @{ tag = $tag; latest = $latest; outdated = [bool]($latest -and $tag -and $latest -ne $tag); waiting = $false; error = $err }
                 }
                 '/api/install' {
                     $pInst = (Read-Body $ctx) | ConvertFrom-Json
@@ -432,7 +445,7 @@ try {
                     try {
                         if (-not $srv) { throw 'Falta Black Mesa Dedicated Server.' }
                         if (Test-ComponentsOk $srv) {
-                            if (-not (Get-ServerProc $srv)) { Disable-SmUpdater $srv; [void](Install-SrcCoopFix $srv); Install-HubPlugin $srv | Out-Null }
+                            if (-not (Get-ServerProc $srv)) { [void](Install-SrcCoopFix $srv); Install-HubPlugin $srv | Out-Null }
                             if ($user) { Set-HostAdmin $srv $user.steamId }
                         }
                         Send $ctx @{ ok = $true; needsInstall = (-not (Test-ComponentsOk $srv)); items = @(Get-Health $client $srv $user $user.steamId) }

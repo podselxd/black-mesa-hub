@@ -174,12 +174,6 @@ function Get-Components($srv) {
 
 function Test-ComponentsOk($srv) { (@(Get-Components $srv | Where-Object { -not $_.ok }).Count -eq 0) }
 
-# El Updater de SourceMod reemplaza el gamedata por el de la ultima version, que no es el de la compilacion instalada (y SourceCoop necesita una concreta):
-# con el gamedata mezclado el servidor se cae al entrar el primer jugador. Se quita siempre.
-function Disable-SmUpdater($srv) {
-    Remove-Item (Join-Path $srv 'bms\addons\sourcemod\extensions\updater.ext.dll') -Force -ErrorAction SilentlyContinue
-}
-
 # SourceCoop v1.6 se rompio con la actualizacion de Black Mesa del 16-nov-2026 (el servidor se cae al entrar el primer jugador, issue #374).
 # El arreglo es solo el archivo gamedata/srccoop.games.txt (PR #375). Se descarga de un commit fijo y se comprueba su SHA-256; solo se aplica
 # si el archivo instalado es exactamente el de la v1.6. Cuando salga una version nueva de SourceCoop, el archivo sera otro y el Hub no lo toca.

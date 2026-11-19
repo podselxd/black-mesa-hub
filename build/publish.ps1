@@ -58,7 +58,7 @@ if ($Release) {
     foreach ($p in $exe, $zip) { if (-not (Test-Path $p)) { throw "Falta $p : ejecuta build\build.ps1." } }
     if ((Get-Content (Join-Path $Hub 'Compartir\LEEME.txt') -Raw) -notmatch [regex]::Escape("v$version")) { throw "Compartir\ no es de la v$version : ejecuta build\build.ps1." }
     $cl = (Get-Content (Join-Path $Hub 'changelog.json') -Raw -Encoding UTF8 | ConvertFrom-Json) | Where-Object { $_.version -eq $version } | Select-Object -First 1
-    $notes = "## Black Mesa Hub v$version`n`n" + (($cl.notes | ForEach-Object { "- $_" }) -join "`n") + "`n`n**Aviso:** la actualización de Black Mesa del 16-nov rompió SourceCoop 1.6; hasta que SourceCoop publique su arreglo, al pulsar Spawn el juego se queda en «Spawning…». Lee el [README](https://github.com/$Repo#estado-actual).`n`nDescarga **BlackMesaHub.exe** y ejecútalo con Steam abierto (Windows puede avisar: *Más información → Ejecutar de todas formas*)."
+    $notes = "## Black Mesa Hub v$version`n`n" + (($cl.notes | ForEach-Object { "- $_" }) -join "`n") + "`n`nDescarga **BlackMesaHub.exe** y ejecútalo con Steam abierto (Windows puede avisar: *Más información → Ejecutar de todas formas*)."
     $nf = Join-Path ([IO.Path]::GetTempPath()) "bmhub-notes-$version.md"; [IO.File]::WriteAllText($nf, $notes, $utf8)
     $ErrorActionPreference = 'Continue'
     & gh release view "v$version" --repo $Repo 2>&1 | Out-Null

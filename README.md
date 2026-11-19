@@ -6,14 +6,11 @@ Lanzador para jugar la **campaña de Black Mesa en cooperativo** con amigos: cre
 
 > Windows puede avisar al abrirlo (no está firmado con certificado de pago): **Más información → Ejecutar de todas formas**.
 
-## ⚠ Estado actual
+## Estado
 
-Black Mesa se actualizó el 16 de noviembre de 2026 y **rompió SourceCoop 1.6** ([issue #374](https://github.com/ampreeT/SourceCoop/issues/374)). Con el arreglo en revisión ([PR #375](https://github.com/ampreeT/SourceCoop/pull/375)), que el Hub aplica solo, el servidor ya no se cae y se entra a él, pero al pulsar *Spawn* el juego se queda en «Spawning…». Hasta que SourceCoop publique una versión nueva no se puede jugar la campaña.
+La campaña **ya se puede jugar** (probado el 18-nov-2026 con SourceMod 7260, SourceCoop 1.6 y el archivo de datos arreglado). La actualización de Black Mesa del 16 de noviembre había roto SourceCoop 1.6 ([issue #374](https://github.com/ampreeT/SourceCoop/issues/374)); su autor la arregló en la rama principal ([PR #375](https://github.com/ampreeT/SourceCoop/pull/375)) y pasó a recomendar la última build de SourceMod. Como todavía no hay una versión numerada nueva de SourceCoop, el Hub instala la v1.6 y le aplica ese archivo de datos (de un commit fijo, comprobando su SHA-256). Cuando salga una versión nueva, el Hub la ofrece con un botón **Actualizar SourceCoop**.
 
-El Hub consulta GitHub al abrirse: cuando salga una versión nueva de SourceCoop muestra una tarjeta «Hay una versión nueva» con un botón **Actualizar SourceCoop**.
-
-Detalles y lo pendiente de probar: [NOTAS.md](NOTAS.md).
-
+Lo que falta por probar a fondo: los comandos de chat dentro de una partida y entrar con un amigo. Detalles en [NOTAS.md](NOTAS.md).
 ## Qué hace
 
 - **Crear partida** — eliges capítulo y pulsas *Iniciar partida*: el Hub arranca el servidor dedicado, abre Black Mesa y entra por ti. Muestra quién está dentro.
@@ -70,7 +67,7 @@ SourceCoop trae además los suyos: `/coopmenu`, `/skipintro`, `/restartmap`, `/c
 - Las órdenes al servidor de juego no usan RCON: van por un archivo que lee el plugin, así que no hay nada extra expuesto a internet.
 - Internet solo se usa para: bajar los componentes al instalar, preguntar a GitHub la última versión de SourceCoop, y —solo si pulsas **Mi IP pública**— preguntar tu IP a api.ipify.org.
 - Los zip se extraen sin salirse de su carpeta y no se aceptan `.bat`, `.ps1`, `.vbs`, etc.
-- Se quita el *Updater* de SourceMod: sustituía el gamedata por el de otra versión y SourceCoop dejaba de funcionar.
+- SourceMod trae su *Updater*, que baja datos nuevos de Black Mesa al arrancar el servidor. Tras instalar, el Hub reinicia el servidor una vez para aplicarlos (sin eso, SourceCoop se cae o no deja spawnear).
 
 ## Estructura
 

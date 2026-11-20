@@ -477,7 +477,8 @@ $('friends').onclick=e=>{const b=e.target.closest('button');if(!b)return;
 $('go-host').onclick=async()=>{
   if($('go-host').disabled)return;$('go-host').disabled=true;
   if(S.autoCopy)await copy(invite(),'Invitación copiada');else toast('Iniciando…');
-  const r=await api('launch',{mode:'host',...S,addr:curAddr(),minimize:S.minimize!==false});
+  busyOn('Preparando…');
+  let r;try{r=await api('launch',{mode:'host',...S,addr:curAddr(),minimize:S.minimize!==false})}catch(e){r={ok:false,error:'El Hub no responde'}}finally{busyOff()}
   if(!r.ok)toast(r.error||'No se pudo iniciar');else{setRunning(true,true);showLoading('Iniciando partida','progress')}
 };
 $('stop').onclick=async()=>{if(!confirm('¿Cerrar Black Mesa? El servidor sigue encendido.'))return;await api('stop',{});setRunning(false,srvRunning);toast('Juego cerrado')};
@@ -707,7 +708,7 @@ document.addEventListener('click',e=>{if(!e.target.closest('.logo'))$('logo-pop'
     if(r.running!==running||r.server!==srvRunning||sc)setRunning(r.running,r.server);
     if(changed)render();
     pingFail=0;$('lost').classList.add('hidden')
-  }catch(e){if(++pingFail>=(!$('loading').classList.contains('hidden')?20:6))$('lost').classList.remove('hidden')}},3000);
+  }catch(e){if(++pingFail>=((!$('loading').classList.contains('hidden')||!$('busy').classList.contains('hidden'))?20:6))$('lost').classList.remove('hidden')}},3000);
 })();
 </script>
 </body>

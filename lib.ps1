@@ -117,6 +117,35 @@ function Get-Chapters($srv) {
     return $out
 }
 
+# ================= mapas: servidor dedicado vs juego =================
+# El juego y el servidor dedicado son aplicaciones distintas de Steam y no siempre se actualizan a la vez. Si los mapas difieren, el servidor
+# echa a los jugadores con «Client's map differs from server's». Los mapas son los mismos datos: se copian del juego al servidor.
+function Get-MapDiffs($client, $srv) {
+    if (-not $client -or -not $srv) { return @() }
+    $cb = Join-Path $client 'bms'; $sb = Join-Path $srv 'bms'
+    $dc = Join-Path $cb 'bms_maps_dir.vpk'; $ds = Join-Path $sb 'bms_maps_dir.vpk'
+    if (-not (Test-Path $dc) -or -not (Test-Path $ds)) { return @() }
+    if ((Get-FileHash $dc -Algorithm SHA256).Hash -eq (Get-FileHash $ds -Algorithm SHA256).Hash) { return @() }   # el indice coincide: mismos mapas
+    $out = @()
+    foreach ($f in (Get-ChildItem $cb -Filter 'bms_maps_*.vpk' -ErrorAction SilentlyContinue)) {
+        $o = Join-Path $sb $f.Name
+        if ($f.Name -eq 'bms_maps_dir.vpk') { continue }
+        if (-not (Test-Path $o) -or $f.LastWriteTimeUtc -gt (Get-Item $o).LastWriteTimeUtc) { $out += $f.Name }
+    }
+    return @($out + 'bms_maps_dir.vpk')
+}
+function Sync-ServerMaps($client, $srv) {
+    $diffs = @(Get-MapDiffs $client $srv)
+    if (-not $diffs.Count) { return @() }
+    if (Get-ServerProc $srv) { throw 'Detén el servidor antes de sincronizar los mapas.' }
+    foreach ($f in $diffs) {
+        $a = Join-Path (Join-Path $client 'bms') $f; $b = Join-Path (Join-Path $srv 'bms') $f
+        Copy-Item $a $b -Force
+        if ((Get-Item $a).Length -ne (Get-Item $b).Length) { throw "La copia de $f salió incompleta." }
+    }
+    return $diffs
+}
+
 # ================= puerto del servidor =================
 # Otro programa (por ejemplo un juego de Unreal) puede tener ya el 27015: srcds se mueve solo a otro puerto y la invitacion quedaria mal.
 function Test-PortFree([int]$p) {
@@ -353,6 +382,7 @@ function Get-Health($client, $srv, $user, [string]$steamId) {
     foreach ($c in (Get-Components $srv)) {
         if ($c.ok) { $items += New-Check $c.id 'ok' "$($c.name) instalado" '' } else { $items += New-Check $c.id 'bad' "Falta $($c.name)" $c.detail }
     }
+    if (@(Get-MapDiffs $client $srv).Count) { $items += New-Check 'maps' 'bad' 'Los mapas del servidor no son los de tu juego' 'Black Mesa se actualizó y el servidor dedicado aún no: te echa con «Client''s map differs». Pulsa Reparar todo (copia los mapas nuevos del juego al servidor).' }
     if (Test-SrcCoopBroken $srv) { $items += New-Check 'srccoopfix' 'bad' 'SourceCoop 1.6 se cae con la actualización de Black Mesa del 16-nov' 'Pulsa Reparar todo: aplica el arreglo oficial (gamedata del PR #375).' }
     if (Test-ServerCfg $srv) { $items += New-Check 'cfg' 'ok' 'Reglas del servidor escritas' 'server.cfg' } else { $items += New-Check 'cfg' 'warn' 'Aún no hay reglas escritas' 'Se crean al iniciar la primera partida.' }
     if (Test-Path (Join-Path $srv 'bms\addons\sourcemod\plugins\hubcmds.smx')) {

@@ -1,6 +1,15 @@
 [
     {
         "date":  "2026-11-20",
+        "version":  "0.1.6",
+        "notes":  [
+                      "Arreglo de «Client\u0027s map differs from server\u0027s»: si el juego se actualizó y el servidor dedicado todavía no, el Hub copia los mapas nuevos del juego al servidor al iniciar la partida (y con Reparar todo).",
+                      "Salud: aviso «Los mapas del servidor no son los de tu juego» cuando hay diferencia.",
+                      "Al pulsar Iniciar partida sale una pantalla de espera mientras se prepara todo."
+                  ]
+    },
+    {
+        "date":  "2026-11-20",
         "version":  "0.1.5",
         "notes":  [
                       "Al iniciar la partida el Hub ya no se queda varios segundos recompilando el plugin (provocaba «Se perdió la conexión con el Hub» en la ventana): solo recompila si el plugin cambió de verdad.",

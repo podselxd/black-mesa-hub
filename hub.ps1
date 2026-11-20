@@ -222,6 +222,7 @@ function Start-Game($client, $srv, $user, $p) {
     $host2 = "$($p.hostname)"; if (-not $host2) { $host2 = "Black Mesa Co-op de $($user.name)" }
     $cfgP = @{ hostname = $host2; password = $p.password; friendlyfire = [bool]$p.friendlyfire; cheats = [bool]$p.cheats; survival = [int]$p.survival; respawn = $p.respawn; extra = $p.extra }
     Stop-BmsServer $srv
+    $syn = @(Sync-ServerMaps $client $srv); if ($syn.Count) { Log "mapas sincronizados del juego al servidor: $($syn -join ', ')" }
     $sm = Join-Path $srv 'bms\addons\sourcemod'
     if (-not (Test-HubPluginCurrent $srv)) { Install-HubPlugin $srv | Out-Null }
     try { if (Install-SrcCoopFix $srv) { Log 'aplicado el arreglo de gamedata de SourceCoop (PR 375)' } } catch { throw "SourceCoop 1.6 necesita un arreglo para la ultima version de Black Mesa y no pude descargarlo: $($_.Exception.Message)" }
@@ -467,6 +468,7 @@ try {
                 '/api/repair' {
                     try {
                         if (-not $srv) { throw 'Falta Black Mesa Dedicated Server.' }
+                        if (-not (Get-ServerProc $srv)) { [void](Sync-ServerMaps $client $srv) }
                         if (Test-ComponentsOk $srv) {
                             if (-not (Get-ServerProc $srv)) { [void](Install-SrcCoopFix $srv); Install-HubPlugin $srv | Out-Null }
                             if ($user) { Set-HostAdmin $srv $user.steamId }

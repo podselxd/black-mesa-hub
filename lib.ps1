@@ -100,7 +100,11 @@ function Get-SteamUser {
 function Get-ClientProc { Get-Process -Name bms -ErrorAction SilentlyContinue | Select-Object -First 1 }
 function Get-ServerProc($srv) {
     if (-not $srv) { return $null }
-    Get-Process -Name srcds -ErrorAction SilentlyContinue | Where-Object { $_.Path -and $_.Path -like "$srv\*" } | Select-Object -First 1
+    $all = @(Get-Process -Name srcds -ErrorAction SilentlyContinue)
+    $m = $all | Where-Object { $_.Path -and $_.Path -like "$srv\*" } | Select-Object -First 1
+    # si Windows no deja leer la ruta (pasa con el servidor muy ocupado, p. ej. al cambiar de mapa), se reconoce el que lanzo el Hub
+    if (-not $m -and $script:Launch -and $script:Launch.srvPid) { $m = $all | Where-Object { $_.Id -eq $script:Launch.srvPid } | Select-Object -First 1 }
+    $m
 }
 
 # Capitulos: los lee de los chapterN.cfg del propio servidor ("map bm_c1a1a")
@@ -178,6 +182,28 @@ function Sync-ServerMaps($client, $srv) {
         if ((Get-Item $a).Length -ne (Get-Item $b).Length) { throw "La copia de $f salió incompleta." }
     }
     return $diffs
+}
+
+# ================= amigos de Steam =================
+# Steam guarda en localconfig.vdf el nombre de sus amigos (con su numero de cuenta): sirve para abrir su chat con un clic
+function Get-SteamFriends {
+    $out = @()
+    $ud = Join-Path (Get-SteamPath) 'userdata'
+    foreach ($dir in (Get-ChildItem $ud -Directory -ErrorAction SilentlyContinue | Where-Object { $_.Name -match '^\d+$' })) {
+        $f = Join-Path $dir.FullName 'config\localconfig.vdf'
+        if (-not (Test-Path $f)) { continue }
+        $t = Get-Content $f -Raw -Encoding UTF8
+        $i = $t.IndexOf('"friends"'); if ($i -lt 0) { continue }
+        $seg = $t.Substring($i, [Math]::Min(400000, $t.Length - $i))
+        foreach ($m in [regex]::Matches($seg, '"(\d{5,10})"\s*\{\s*"name"\s+"([^"]*)"|"(\d{5,10})"\s*\{\s*"NameHistory"[^{}]*\{[^{}]*\}\s*"avatar"\s+"[0-9a-f]+"\s*"name"\s+"([^"]*)"')) {
+            $id = $m.Groups[1].Value; $nm = $m.Groups[2].Value
+            if (-not $id) { $id = $m.Groups[3].Value; $nm = $m.Groups[4].Value }
+            if ($id -eq $dir.Name -or -not $nm) { continue }
+            $out += @{ id = ([int64]$id + 76561197960265728).ToString(); name = $nm }
+        }
+        if ($out.Count) { break }
+    }
+    return @($out | Sort-Object { $_.name.ToLower() } | Group-Object { $_.id } | ForEach-Object { $_.Group[0] })
 }
 
 # ================= disco =================

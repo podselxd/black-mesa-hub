@@ -1,6 +1,14 @@
 [
     {
         "date":  "2026-11-20",
+        "version":  "0.2.4",
+        "notes":  [
+                      "Invitar por Steam de verdad: el botón abre una lista con tus amigos de Steam; al pulsar «Invitar» se copia la invitación (con la guía de Radmin) y se abre su chat para pegarla.",
+                      "«Servidor encendido» ya no parpadea a «apagado» por un latido suelto (por ejemplo al cambiar de mapa con el servidor muy ocupado)."
+                  ]
+    },
+    {
+        "date":  "2026-11-20",
         "version":  "0.2.3",
         "notes":  [
                       "Arreglo de fondo del aviso «Se perdió la conexión con el Hub»: con un solo jugador dentro, el Hub mandaba su nombre como texto en vez de como lista y la ventana fallaba en cada latido aunque el Hub estuviera bien."

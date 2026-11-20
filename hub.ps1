@@ -506,9 +506,11 @@ try {
                     try { [void](Start-RadminBackground); Send $ctx @{ ok = $true; radmin = (Get-RadminInfo -Fresh) } }
                     catch { Send $ctx @{ ok = $false; error = $_.Exception.Message } }
                 }
+                '/api/steamfriends' { Send $ctx @{ friends = @(Get-SteamFriends) } }
                 '/api/steam' {
                     $pSt = $null; try { $pSt = (Read-Body $ctx) | ConvertFrom-Json } catch {}
-                    if ($pSt -and $pSt.page -eq 'friends') { Start-Process 'steam://open/friends' } else { Start-Process 'steam://open/main' }
+                    if ($pSt -and "$($pSt.chat)" -match '^7656\d{13}$') { Start-Process "steam://friends/message/$($pSt.chat)" }
+                    elseif ($pSt -and $pSt.page -eq 'friends') { Start-Process 'steam://open/friends' } else { Start-Process 'steam://open/main' }
                     Send $ctx @{ ok = $true }
                 }
                 '/api/quit' { Send $ctx @{ ok = $true }; return }

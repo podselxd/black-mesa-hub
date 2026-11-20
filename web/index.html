@@ -384,12 +384,19 @@ code{background:#0a0b0d;padding:1px 6px;border-radius:5px;font:12px Consolas,mon
   <input type="text" id="dlg-in" class="hidden" maxlength="40" style="margin-bottom:14px" autocomplete="off">
   <div class="row" style="justify-content:flex-end"><button class="btn" id="dlg-no"></button><button class="btn pri" id="dlg-yes"></button></div>
 </div></div>
+<div id="sf" class="modal hidden"><div class="mcard" style="max-width:520px">
+  <div class="row" style="justify-content:space-between"><h2 style="margin:0">Invitar por Steam</h2><button class="mini" id="sf-x">✕</button></div>
+  <div class="note" style="margin:6px 0 10px">Elige a tu amigo: se copia la invitación y se abre su chat de Steam. Solo tienes que pegarla (Ctrl+V) y enviar.</div>
+  <input type="text" id="sf-q" placeholder="Buscar amigo…" autocomplete="off">
+  <div class="friends" id="sf-list" style="max-height:48vh;overflow:auto"></div>
+  <div class="row" style="margin-top:12px"><button class="btn" id="sf-open">Abrir mi lista de amigos de Steam</button></div>
+</div></div>
 <div id="busy" class="hidden"><div class="spin"></div><span id="busy-t">Aplicando…</span></div>
 <div id="toast"></div>
 
 <script>
 const TOKEN='__TOKEN__';
-let pingFail=0;
+let pingFail=0,srvMiss=0;
 const TITLES={bm_c0a0a:'Black Mesa Inbound',bm_c1a0a:'Anomalous Materials',bm_c1a1a:'Unforeseen Consequences',bm_c1a2a:'Office Complex',bm_c1a3a:"We've Got Hostiles",
  bm_c1a4a:'Blast Pit',bm_c2a1a:'Power Up',bm_c2a2a:'On a Rail',bm_c2a3a:'Apprehension',bm_c2a4a:'Residue Processing',bm_c2a4e:'Questionable Ethics',
  bm_c2a5a:'Surface Tension',bm_c3a1a:'Forget About Freeman!',bm_c3a2a:'Lambda Core',bm_c4a1a:'Xen',bm_c4a2a:"Gonarch's Lair",bm_c4a3a:'Interloper',
@@ -506,7 +513,7 @@ $('addr-pub').onclick=async()=>{
   pubIp=r.ip;S.addr=r.ip;save();render();toast('IP pública: '+r.ip);
 };
 $('copy-invite').onclick=()=>copy(invite(),'Invitación copiada, pégala en Discord');
-$('steam-invite').onclick=async()=>{await copy(invite(),'Invitación copiada: pégala en el chat de tu amigo');await api('steam',{page:'friends'})};
+$('steam-invite').onclick=()=>openSteamFriends();
 $('copy-connect').onclick=()=>copy(`connect ${curAddr()}:${info.port||27015}`,'Comando copiado');
 $('f-add').onclick=()=>{const v=$('f-name').value.trim();if(!v)return;S.friends.push(v);$('f-name').value='';save();render()};
 $('f-name').onkeydown=e=>{if(e.key==='Enter')$('f-add').click()};
@@ -789,6 +796,21 @@ $('tut-tabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;tutRol
 $('tut-x').onclick=closeTut;$('tut-done').onclick=closeTut;
 $('first-yes').onclick=()=>{$('first').classList.add('hidden');openTut('host')};
 $('first-no').onclick=()=>{$('first').classList.add('hidden');S.tutorialDone=true;save()};
+// ---- Invitar por Steam: lista de amigos y chat con un clic ----
+let sfAll=[];
+async function openSteamFriends(){
+  $('sf').classList.remove('hidden');$('sf-q').value='';$('sf-list').innerHTML='<div class="note">Cargando amigos…</div>';
+  try{sfAll=(await api('steamfriends')).friends||[]}catch(e){sfAll=[]}
+  renderSf();$('sf-q').focus();
+}
+function renderSf(){
+  const q=$('sf-q').value.trim().toLowerCase(),l=sfAll.filter(f=>f.name.toLowerCase().includes(q));
+  $('sf-list').innerHTML=l.map(f=>`<div class="friend"><div class="av">${esc((f.name[0]||'?').toUpperCase())}</div><div class="nm">${esc(f.name)}</div><button class="btn sm pri" data-id="${f.id}">Invitar</button></div>`).join('')||`<div class="note">${sfAll.length?'Nadie coincide con la búsqueda.':'No encontré tu lista de amigos de Steam. Usa el botón de abajo.'}</div>`;
+}
+$('sf-q').oninput=renderSf;$('sf-x').onclick=()=>$('sf').classList.add('hidden');
+$('sf-open').onclick=async()=>{await copy(S.useRadmin!==false?guide():invite(),'Invitación copiada');await api('steam',{page:'friends'})};
+$('sf-list').onclick=async e=>{const b=e.target.closest('button');if(!b)return;
+  await copy(S.useRadmin!==false?guide():invite(),'Invitación copiada: pégala (Ctrl+V) en el chat');await api('steam',{chat:b.dataset.id});$('sf').classList.add('hidden')};
 // ---- logos ----
 const LOGOS={
   hex:{n:'Hexágono',s:'<path d="M32 4 56 18v28L32 60 8 46V18z" fill="none" stroke="#ffa826" stroke-width="4" stroke-linejoin="round"/><circle cx="32" cy="32" r="8" fill="none" stroke="#ffa826" stroke-width="4"/><path d="M32 13v11M32 40v11M13 32h11M40 32h11" stroke="#ffa826" stroke-width="4" stroke-linecap="round"/>'},
@@ -822,6 +844,7 @@ document.addEventListener('click',e=>{if(!e.target.closest('.logo'))$('logo-pop'
     const sc=r.steam!==info.steamRunning;info.steamRunning=r.steam;
     r.players=[].concat(r.players||[]);const names=r.players.join('|'),changed=names!==room.players.join('|')||(r.port&&r.port!==info.port);if(r.port)info.port=r.port;const rn={installed:r.radminInstalled,ip:r.radminIp,gui:r.radminGui};if(JSON.stringify(rn)!==JSON.stringify(info.radmin||{})){info.radmin=rn;renderRadmin()}room.players=r.players||[];room.map=r.map||'';
     if(sc){$('d-steam').classList.toggle('ok',!!r.steam);$('t-steam').textContent=r.steam?'Steam conectado':'Steam cerrado';$('steam-warn').classList.toggle('hidden',!!r.steam)}
+    if(r.server===false&&srvRunning){if(++srvMiss<3)r.server=true}else srvMiss=0;
     if(r.running!==running||r.server!==srvRunning||sc)setRunning(r.running,r.server);
     if(changed)render();
     pingFail=0;$('lost').classList.add('hidden')

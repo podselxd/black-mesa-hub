@@ -180,6 +180,19 @@ function Sync-ServerMaps($client, $srv) {
     return $diffs
 }
 
+# ================= disco =================
+# Black Mesa en un disco duro (HDD) tarda mucho en cargar y Windows lo marca como «no responde»
+$script:DiskCache = @{}
+function Get-DiskKind([string]$path) {
+    if (-not $path -or $path.Length -lt 2 -or $path[1] -ne ':') { return '' }
+    $l = $path.Substring(0, 1).ToUpper()
+    if ($script:DiskCache.ContainsKey($l)) { return $script:DiskCache[$l] }
+    $k = ''
+    try { $disk = Get-Partition -DriveLetter $l -ErrorAction Stop | Get-Disk -ErrorAction Stop; $k = "$((Get-PhysicalDisk -ErrorAction Stop | Where-Object { $_.DeviceId -eq "$($disk.Number)" } | Select-Object -First 1).MediaType)" } catch {}
+    $script:DiskCache[$l] = $k
+    return $k
+}
+
 # ================= puerto del servidor =================
 # Otro programa (por ejemplo un juego de Unreal) puede tener ya el 27015: srcds se mueve solo a otro puerto y la invitacion quedaria mal.
 function Test-PortFree([int]$p) {
@@ -414,6 +427,7 @@ function Get-Health($client, $srv, $user, [string]$steamId) {
     else { $items += New-Check 'server' 'bad' 'Falta Black Mesa Dedicated Server' 'Es gratis: en Steam busca "Black Mesa Dedicated Server" (herramientas) e instálalo.'; return $items }
     if (Get-Process -Name steam -ErrorAction SilentlyContinue) { $items += New-Check 'steam' 'ok' 'Steam abierto' '' } else { $items += New-Check 'steam' 'bad' 'Steam está cerrado' '' }
     if ($user) { $items += New-Check 'user' 'ok' "Cuenta detectada: $($user.name)" $user.steamId } else { $items += New-Check 'user' 'warn' 'No detecté tu cuenta de Steam' '' }
+    if ((Get-DiskKind $client) -eq 'HDD') { $items += New-Check 'disk' 'warn' 'Black Mesa está en un disco duro lento (HDD)' 'Tarda mucho en cargar y Windows dice «no responde»: es normal, no lo cierres. Va mucho mejor en un SSD: en Steam, Black Mesa → Propiedades → Archivos instalados → Mover carpeta de instalación.' }
     foreach ($c in (Get-Components $srv)) {
         if ($c.ok) { $items += New-Check $c.id 'ok' "$($c.name) instalado" '' } else { $items += New-Check $c.id 'bad' "Falta $($c.name)" $c.detail }
     }

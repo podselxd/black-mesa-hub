@@ -258,7 +258,9 @@ function Get-LaunchProgress($client, $srv, $user) {
         $conn = ($text -match 'Connected to|Spawn Server|Sending client info|SignonState')
         $steps += @{ k = 'game'; label = 'Abriendo Black Mesa'; done = $opened }
         $steps += @{ k = 'connect'; label = "Conectando a $($L.ip)"; done = ($opened -and ($conn -or $elapsed -gt 25)) }
-        $steps += @{ k = 'ready'; label = 'Dentro de la partida'; done = ($opened -and ($conn -or $elapsed -gt 45)) -and $cp }
+        $wait = 'Dentro de la partida'
+        if ($cp -and -not $cp.Responding) { $wait = 'Dentro de la partida · cargando (Windows dice «no responde»: es normal, no lo cierres)' }
+        $steps += @{ k = 'ready'; label = $wait; done = ($opened -and ($conn -or $elapsed -gt 45)) -and $cp }
         $done = @($steps | Where-Object { -not $_.done }).Count -eq 0
         if (-not $cp -and $L.seen -and -not $done) { $err = 'El juego se cerró antes de terminar de cargar.' }
         elseif (-not $cp -and -not $L.seen -and $elapsed -gt 40) { $err = 'El juego no abrió. Revisa que Steam esté abierto.' }
@@ -288,7 +290,9 @@ function Get-LaunchProgress($client, $srv, $user) {
         $steps += @{ k = 'map'; label = "Cargando el mapa $($L.map)"; done = $mapOk }
         if ($mapOk -and -not $L.clientStarted) { $L.clientStarted = $true; Start-Client $client @('+connect', $L.ip) $L.screen $L.gfx }
         $steps += @{ k = 'game'; label = 'Abriendo Black Mesa'; done = [bool]($L.clientStarted -and $cp -and $cp.MainWindowHandle -ne 0) }
-        $steps += @{ k = 'ready'; label = 'Dentro de la partida'; done = [bool]($mapOk -and $st.players -ge 1 -and $cp) }
+        $wait = 'Dentro de la partida'
+        if ($cp -and -not $cp.Responding) { $wait = 'Dentro de la partida · cargando (Windows dice «no responde»: es normal, no lo cierres)' }
+        $steps += @{ k = 'ready'; label = $wait; done = [bool]($mapOk -and $st.players -ge 1 -and $cp) }
         $done = @($steps | Where-Object { -not $_.done }).Count -eq 0
         if (-not $sp -and -not $done -and $elapsed -gt 15) { $err = 'El servidor se cerró. Mira el diagnóstico en Ajustes.' }
         elseif ($sp -and -not $st -and $elapsed -gt 120) { $err = 'El servidor no cargó el plugin del Hub en 2 minutos. Mira el diagnóstico en Ajustes.' }
@@ -369,8 +373,11 @@ $lastPing = Get-Date
 # Edge restaura las ventanas de la sesion anterior (apuntan a un Hub que ya no existe y salen con «Se perdio la conexion»): se borra la sesion guardada si no hay ya una ventana nuestra abierta
 if (-not $NoBrowser) {
     $prof = Join-Path $Root '.browser-profile'
+    # Si hubiera un Hub de esta version vivo ya habriamos salido arriba: cualquier ventana nuestra que siga abierta apunta a un Hub muerto («Se perdio la conexion»)
     $mine = @(Get-CimInstance Win32_Process -Filter "Name='msedge.exe'" -ErrorAction SilentlyContinue | Where-Object { $_.CommandLine -and $_.CommandLine -like "*$prof*" })
-    if ($mine.Count -eq 0) { foreach ($s in 'Sessions', 'Current Session', 'Last Session', 'Current Tabs', 'Last Tabs') { Remove-Item (Join-Path $prof "Default\$s") -Recurse -Force -ErrorAction SilentlyContinue } }
+    foreach ($m in $mine) { Stop-Process -Id $m.ProcessId -Force -ErrorAction SilentlyContinue }
+    if ($mine.Count) { Start-Sleep -Milliseconds 700 }
+    if ($true) { foreach ($s in 'Sessions', 'Current Session', 'Last Session', 'Current Tabs', 'Last Tabs') { Remove-Item (Join-Path $prof "Default\$s") -Recurse -Force -ErrorAction SilentlyContinue } }
 }
 $edgeProc = Open-Window "http://127.0.0.1:$port/?t=$token"
 # Radmin VPN en segundo plano (como lo hace Windows al iniciar sesion): quien juega a diario no tiene que acordarse de abrirlo

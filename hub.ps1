@@ -340,7 +340,13 @@ function Open-Window($url) {
 if (Test-Path $RunFile) {
     try {
         $r = Get-Content $RunFile -Raw | ConvertFrom-Json
-        if ((Get-Process -Id $r.pid -ErrorAction SilentlyContinue).ProcessName -match 'powershell') { Open-Window "http://127.0.0.1:$($r.port)/?t=$($r.token)" | Out-Null; exit 0 }
+        $old = Get-Process -Id $r.pid -ErrorAction SilentlyContinue
+        if ($old -and $old.ProcessName -match 'powershell') {
+            # solo se reutiliza un Hub de ESTA version: si el .exe es mas nuevo, el viejo se cierra y este toma el relevo (si no, se quedaria el codigo antiguo)
+            if ("$($r.version)" -eq $Version) { Open-Window "http://127.0.0.1:$($r.port)/?t=$($r.token)" | Out-Null; exit 0 }
+            Stop-Process -Id $r.pid -Force -ErrorAction SilentlyContinue
+            Start-Sleep -Milliseconds 500
+        }
     } catch {}
 }
 
@@ -353,9 +359,15 @@ foreach ($try in 1..30) {
     try { $listener = New-Object System.Net.HttpListener; $listener.Prefixes.Add("http://127.0.0.1:$port/"); $listener.Start(); break } catch { $listener = $null }
 }
 if (-not $listener) { throw 'No pude abrir un puerto local.' }
-@{ pid = $PID; port = $port; token = $token } | ConvertTo-Json | Set-Content $RunFile -Encoding ASCII
+@{ pid = $PID; port = $port; token = $token; version = $Version } | ConvertTo-Json | Set-Content $RunFile -Encoding ASCII
 $user = Get-SteamUser
 $lastPing = Get-Date
+# Edge restaura las ventanas de la sesion anterior (apuntan a un Hub que ya no existe y salen con «Se perdio la conexion»): se borra la sesion guardada si no hay ya una ventana nuestra abierta
+if (-not $NoBrowser) {
+    $prof = Join-Path $Root '.browser-profile'
+    $mine = @(Get-CimInstance Win32_Process -Filter "Name='msedge.exe'" -ErrorAction SilentlyContinue | Where-Object { $_.CommandLine -and $_.CommandLine -like "*$prof*" })
+    if ($mine.Count -eq 0) { foreach ($s in 'Sessions', 'Current Session', 'Last Session', 'Current Tabs', 'Last Tabs') { Remove-Item (Join-Path $prof "Default\$s") -Recurse -Force -ErrorAction SilentlyContinue } }
+}
 $edgeProc = Open-Window "http://127.0.0.1:$port/?t=$token"
 Log "hub en puerto $port | cliente: $client | servidor: $srv"
 

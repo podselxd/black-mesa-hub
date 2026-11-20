@@ -212,10 +212,13 @@ int FindBySteam(const char[] steam)
 	return -1;
 }
 
-int FindByName(const char[] name)
+// Autocompleta el nombre: exacto; si no, el unico cuyo nombre EMPIEZA por lo escrito; si no, el unico que lo CONTIENE.
+// Devuelve -1 si no hay ninguno y -2 si hay varios posibles (deja sus nombres en list).
+int FindByName(const char[] name, char[] list, int listLen)
 {
-	int found = -1;
+	int prefix = -1, sub = -1, nPrefix = 0, nSub = 0;
 	char nm[MAX_NAME_LENGTH];
+	list[0] = '\0';
 	for (int i = 1; i <= MaxClients; i++)
 	{
 		if (!IsClientInGame(i) || IsFakeClient(i))
@@ -223,12 +226,26 @@ int FindByName(const char[] name)
 		GetClientName(i, nm, sizeof(nm));
 		if (StrEqual(nm, name, false))
 			return i;
-		if (found == -1 && StrContains(nm, name, false) != -1)
-			found = i;
+		int pos = StrContains(nm, name, false);
+		if (pos == -1)
+			continue;
+		if (pos == 0)
+		{
+			prefix = i;
+			nPrefix++;
+		}
+		sub = i;
+		nSub++;
+		if (list[0] != '\0')
+			StrCat(list, listLen, ", ");
+		StrCat(list, listLen, nm);
 	}
-	return found;
+	if (nPrefix == 1)
+		return prefix;
+	if (nPrefix == 0 && nSub == 1)
+		return sub;
+	return nSub == 0 ? -1 : -2;
 }
-
 bool ResolveItem(const char[] name, char[] out, int len)
 {
 	char n[64];
@@ -390,7 +407,13 @@ void TeleportToPlayer(int client, const char[] name)
 		Reply(client, list[0] != '\0' ? "Usa /tp nombre. Jugadores: %s" : "Usa /tp nombre. No hay nadie mas.", list);
 		return;
 	}
-	int target = FindByName(name);
+	char matches[256];
+	int target = FindByName(name, matches, sizeof(matches));
+	if (target == -2)
+	{
+		Reply(client, "Varios coinciden: %s. Escribe un poco mas del nombre.", matches);
+		return;
+	}
 	if (target == -1)
 	{
 		Reply(client, "No encontre a %s.", name);

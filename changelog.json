@@ -1,6 +1,14 @@
 [
     {
         "date":  "2026-11-20",
+        "version":  "0.2.5",
+        "notes":  [
+                      "Chat: /tp autocompleta el nombre. Basta un trozo («/tp xim»): primero el nombre exacto, luego el único que empieza así, luego el único que lo contiene; si coinciden varios, te dice cuáles.",
+                      "Comandos: los jugadores conectados salen como botones para rellenar el nombre del teletransporte."
+                  ]
+    },
+    {
+        "date":  "2026-11-20",
         "version":  "0.2.4",
         "notes":  [
                       "Invitar por Steam de verdad: el botón abre una lista con tus amigos de Steam; al pulsar «Invitar» se copia la invitación (con la guía de Radmin) y se abre su chat para pegarla.",

@@ -305,6 +305,8 @@ code{background:#0a0b0d;padding:1px 6px;border-radius:5px;font:12px Consolas,mon
     <div class="hint">/tp nombre · /tp lista · /s guardar · /p volver</div>
     <div class="row"><input type="text" id="tp-name" placeholder="Nombre del jugador" style="width:220px"><button class="btn pri" id="tp-go">Ir con él (/tp)</button>
       <button class="btn" id="tp-save">Guardar posición (/s)</button><button class="btn" id="tp-load">Ir a posición (/p)</button></div>
+    <div class="cbtns" id="tp-chips" style="margin-top:10px"></div>
+    <div class="note">En el chat del juego basta con escribir un trozo del nombre: <code>/tp xim</code> te lleva con Ximena. Si coinciden varios, el juego te dice cuáles.</div>
   </section>
   <section class="card">
     <h2>Mis atajos</h2>
@@ -469,6 +471,7 @@ function render(){
   setRunning(running,srvRunning);
   renderJoin();
   renderRadmin();
+  renderTpChips();
 }
 const room={players:[]};
 function setRunning(r,s){
@@ -811,6 +814,13 @@ $('sf-q').oninput=renderSf;$('sf-x').onclick=()=>$('sf').classList.add('hidden')
 $('sf-open').onclick=async()=>{await copy(S.useRadmin!==false?guide():invite(),'Invitación copiada');await api('steam',{page:'friends'})};
 $('sf-list').onclick=async e=>{const b=e.target.closest('button');if(!b)return;
   await copy(S.useRadmin!==false?guide():invite(),'Invitación copiada: pégala (Ctrl+V) en el chat');await api('steam',{chat:b.dataset.id});$('sf').classList.add('hidden')};
+// jugadores conectados como botones: un clic rellena el nombre del teletransporte
+function renderTpChips(){
+  const me=info.steamName,l=(room.players||[]).filter(n=>n!==me);
+  $('tp-chips').innerHTML=l.length?'<span class="note" style="margin:0 6px 0 0;align-self:center">Conectados:</span>'+l.map(n=>`<button class="btn sm" data-n="${esc(n)}">${esc(n)}</button>`).join(''):'<span class="note" style="margin:0">Cuando entre alguien aparecerá aquí.</span>';
+}
+$('tp-chips').onclick=e=>{const b=e.target.closest('button[data-n]');if(!b)return;$('tp-name').value=b.dataset.n;$('tp-name').focus()};
+
 // ---- logos ----
 const LOGOS={
   hex:{n:'Hexágono',s:'<path d="M32 4 56 18v28L32 60 8 46V18z" fill="none" stroke="#ffa826" stroke-width="4" stroke-linejoin="round"/><circle cx="32" cy="32" r="8" fill="none" stroke="#ffa826" stroke-width="4"/><path d="M32 13v11M32 40v11M13 32h11M40 32h11" stroke="#ffa826" stroke-width="4" stroke-linecap="round"/>'},

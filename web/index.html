@@ -820,7 +820,7 @@ document.addEventListener('click',e=>{if(!e.target.closest('.logo'))$('logo-pop'
   setInterval(async()=>{try{
     const r=await api('ping');
     const sc=r.steam!==info.steamRunning;info.steamRunning=r.steam;
-    const names=(r.players||[]).join('|'),changed=names!==room.players.join('|')||(r.port&&r.port!==info.port);if(r.port)info.port=r.port;const rn={installed:r.radminInstalled,ip:r.radminIp,gui:r.radminGui};if(JSON.stringify(rn)!==JSON.stringify(info.radmin||{})){info.radmin=rn;renderRadmin()}room.players=r.players||[];room.map=r.map||'';
+    r.players=[].concat(r.players||[]);const names=r.players.join('|'),changed=names!==room.players.join('|')||(r.port&&r.port!==info.port);if(r.port)info.port=r.port;const rn={installed:r.radminInstalled,ip:r.radminIp,gui:r.radminGui};if(JSON.stringify(rn)!==JSON.stringify(info.radmin||{})){info.radmin=rn;renderRadmin()}room.players=r.players||[];room.map=r.map||'';
     if(sc){$('d-steam').classList.toggle('ok',!!r.steam);$('t-steam').textContent=r.steam?'Steam conectado':'Steam cerrado';$('steam-warn').classList.toggle('hidden',!!r.steam)}
     if(r.running!==running||r.server!==srvRunning||sc)setRunning(r.running,r.server);
     if(changed)render();

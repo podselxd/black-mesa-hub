@@ -402,12 +402,13 @@ try {
             if (-not $authed) { Send $ctx '{"error":"no autorizado"}' 'application/json' 403; continue }
             switch ($path) {
                 '/api/ping' {
+                    # OJO: con un solo jugador, $(if ...) deja el nombre como texto y no como lista; el JS fallaba y la ventana decia «Se perdio la conexion». Por eso players va dentro de @()
                     $lastPing = Get-Date
                     # la consola del servidor no debe verse nunca (si se hace clic en ella, Windows la pausa y el servidor se congela)
                     if ($script:Launch -and $script:Launch.srvPid -and ((Get-Date) - $script:Launch.at).TotalSeconds -lt 240) { [HubWin]::HideByPid($script:Launch.srvPid) | Out-Null }
                     $st = $null; if ($srv) { $st = Get-ServerState $srv }
                     $rad = Get-RadminInfo
-                    Send $ctx @{ radminInstalled = $rad.installed; radminIp = $rad.ip; radminGui = $rad.gui; port = $(if ($sp = Get-ServerPort $srv) { $sp } else { Get-FreeGamePort }); running = [bool](Get-ClientProc); steam = [bool](Get-Process steam -ErrorAction SilentlyContinue); server = [bool](Get-ServerProc $srv); players = $(if ($st) { $st.names } else { @() }); map = $(if ($st) { $st.map } else { '' }) }
+                    Send $ctx @{ radminInstalled = $rad.installed; radminIp = $rad.ip; radminGui = $rad.gui; port = $(if ($sp = Get-ServerPort $srv) { $sp } else { Get-FreeGamePort }); running = [bool](Get-ClientProc); steam = [bool](Get-Process steam -ErrorAction SilentlyContinue); server = [bool](Get-ServerProc $srv); players = @($(if ($st) { $st.names } else { @() })); map = $(if ($st) { $st.map } else { '' }) }
                 }
                 '/api/state' {
                     Send $ctx @{

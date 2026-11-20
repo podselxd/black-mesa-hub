@@ -1,6 +1,13 @@
 [
     {
         "date":  "2026-11-20",
+        "version":  "0.2.3",
+        "notes":  [
+                      "Arreglo de fondo del aviso «Se perdió la conexión con el Hub»: con un solo jugador dentro, el Hub mandaba su nombre como texto en vez de como lista y la ventana fallaba en cada latido aunque el Hub estuviera bien."
+                  ]
+    },
+    {
+        "date":  "2026-11-20",
         "version":  "0.2.2",
         "notes":  [
                       "Al abrir el Hub se cierran las ventanas viejas de Edge que seguían abiertas apuntando a un Hub que ya no existía: era lo que dejaba el aviso rojo «Se perdió la conexión con el Hub».",

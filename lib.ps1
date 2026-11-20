@@ -4,7 +4,7 @@
 $script:GamePort = 27015
 $script:MarkBegin = '// >>> Black Mesa Hub'
 $script:MarkEnd = '// <<< Black Mesa Hub'
-$script:AllowedHosts = 'steamcommunity.com', 'store.steampowered.com', 'www.moddb.com', 'www.sourcemod.net', 'wiki.alliedmods.net', 'github.com', 'developer.valvesoftware.com', 'blackmesasource.com', 'discord.gg', 'www.blackmesasource.com'
+$script:AllowedHosts = 'steamcommunity.com', 'store.steampowered.com', 'www.moddb.com', 'www.sourcemod.net', 'wiki.alliedmods.net', 'github.com', 'developer.valvesoftware.com', 'blackmesasource.com', 'discord.gg', 'www.blackmesasource.com', 'www.radmin-vpn.com', 'radmin-vpn.com'
 
 # Escritura atomica: se escribe a un temporal y se reemplaza. Un corte de luz no deja un archivo roto.
 function Write-Atomic([string]$Path, [string]$Text) {
@@ -117,6 +117,40 @@ function Get-Chapters($srv) {
     return $out
 }
 
+# ================= Radmin VPN =================
+# Se usa para jugar en linea sin abrir puertos del router: todos entran en la misma red de Radmin y se ven por sus direcciones 26.x.x.x.
+$script:RadminCache = $null; $script:RadminCacheAt = [datetime]::MinValue
+function Get-RadminExe {
+    foreach ($p in "${env:ProgramFiles(x86)}\Radmin VPN\RvRvpnGui.exe", "$env:ProgramFiles\Radmin VPN\RvRvpnGui.exe") { if ($p -and (Test-Path $p)) { return $p } }
+    return $null
+}
+function Get-RadminInfo([switch]$Fresh) {
+    if (-not $Fresh -and $script:RadminCache -and ((Get-Date) - $script:RadminCacheAt).TotalSeconds -lt 4) { return $script:RadminCache }
+    $exe = Get-RadminExe
+    $ip = $null
+    try { $a = @(Get-NetIPAddress -AddressFamily IPv4 -ErrorAction Stop | Where-Object { $_.IPAddress -like '26.*' -and $_.InterfaceAlias -match 'Radmin' }); if ($a.Count) { $ip = $a[0].IPAddress } } catch {}
+    $o = @{ installed = [bool]$exe; exe = $exe; gui = [bool](Get-Process -Name RvRvpnGui -ErrorAction SilentlyContinue); ip = $ip }
+    $script:RadminCache = $o; $script:RadminCacheAt = Get-Date
+    return $o
+}
+# Abre Radmin VPN minimizado junto al reloj (es como lo arranca Windows al iniciar sesion). No hace nada si ya esta abierto o no esta instalado.
+function Start-RadminBackground {
+    $exe = Get-RadminExe
+    if (-not $exe) { return $false }
+    if (-not (Get-Process -Name RvRvpnGui -ErrorAction SilentlyContinue)) { Start-Process -FilePath $exe -ArgumentList '/minimized' | Out-Null }
+    return $true
+}
+# Para jugar: Radmin instalado y con su direccion; si esta apagado se abre y se espera a que conecte
+function Confirm-Radmin {
+    $i = Get-RadminInfo -Fresh
+    if (-not $i.installed) { throw 'Falta Radmin VPN. Descárgalo desde el tutorial del Hub (o radmin-vpn.com) e instálalo.' }
+    if (-not $i.ip) {
+        [void](Start-RadminBackground)
+        for ($k = 0; $k -lt 25 -and -not $i.ip; $k++) { Start-Sleep -Seconds 1; $i = Get-RadminInfo -Fresh }
+        if (-not $i.ip) { throw 'Radmin VPN está abierto pero aún no conecta. Espera unos segundos y vuelve a intentarlo (su icono está junto al reloj).' }
+    }
+    return $i
+}
 # ================= mapas: servidor dedicado vs juego =================
 # El juego y el servidor dedicado son aplicaciones distintas de Steam y no siempre se actualizan a la vez. Si los mapas difieren, el servidor
 # echa a los jugadores con «Client's map differs from server's». Los mapas son los mismos datos: se copian del juego al servidor.
@@ -173,7 +207,8 @@ function Get-Addresses {
         foreach ($a in (Get-NetIPAddress -AddressFamily IPv4 -ErrorAction Stop | Where-Object { $_.IPAddress -notlike '127.*' -and $_.IPAddress -notlike '169.254.*' -and $_.PrefixOrigin -ne 'WellKnown' })) {
             $ip = $a.IPAddress; $kind = 'lan'; $label = 'Red local'
             if ($ip -match '^100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\.') { $kind = 'tailscale'; $label = 'Tailscale' }
-            elseif ($a.InterfaceAlias -match 'Tailscale|ZeroTier|Hamachi|Radmin') { $kind = 'vpn'; $label = $a.InterfaceAlias }
+            elseif ($ip -like '26.*' -or $a.InterfaceAlias -match 'Radmin') { $kind = 'radmin'; $label = 'Radmin VPN' }
+            elseif ($a.InterfaceAlias -match 'Tailscale|ZeroTier|Hamachi') { $kind = 'vpn'; $label = $a.InterfaceAlias }
             $list += @{ ip = $ip; kind = $kind; label = $label }
         }
     } catch {}

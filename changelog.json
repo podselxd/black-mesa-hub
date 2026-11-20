@@ -1,6 +1,38 @@
 [
     {
         "date":  "2026-11-20",
+        "version":  "0.2.1",
+        "notes":  [
+                      "Los cuadros de confirmación de Edge se cambian por cuadros del propio Hub con botones que dicen lo que hacen («Cerrar el juego e iniciar», «Detener servidor», «Guardar y unirme», «Deshacer cambios»…)."
+                  ]
+    },
+    {
+        "date":  "2026-11-20",
+        "version":  "0.2.0",
+        "notes":  [
+                      "Radmin VPN obligatorio para jugar en línea: si no está instalado el Hub lo avisa y ofrece descargarlo; si está apagado lo abre solo en segundo plano (también al abrir el Hub).",
+                      "Tutorial de Radmin para el anfitrión y para el que se une. Aparece la primera vez («¿Es tu primera vez jugando?») y está siempre en Ajustes, en Unirme y en la tarjeta de Radmin.",
+                      "Guía para amigos lista para copiar (pasos, nombre y contraseña de tu red de Radmin y la invitación).",
+                      "Se puede desactivar en Reglas → Usar Radmin VPN."
+                  ]
+    },
+    {
+        "date":  "2026-11-20",
+        "version":  "0.1.8",
+        "notes":  [
+                      "Arreglo: al iniciar la partida salía a veces «El servidor se cerró» sin ser verdad (justo tras lanzarlo Windows no deja leer su ruta) y entonces no se ocultaba su ventana.",
+                      "La consola del servidor se oculta también mientras se mantiene el Hub abierto: si se hace clic en ella, Windows la pausa y el servidor se congela."
+                  ]
+    },
+    {
+        "date":  "2026-11-20",
+        "version":  "0.1.7",
+        "notes":  [
+                      "Si el servidor se apaga pero Black Mesa sigue abierto, el botón dice «Cerrar el juego e iniciar» y ya no se queda en «En curso…» sin poder hacer nada."
+                  ]
+    },
+    {
+        "date":  "2026-11-20",
         "version":  "0.1.6",
         "notes":  [
                       "Arreglo de «Client\u0027s map differs from server\u0027s»: si el juego se actualizó y el servidor dedicado todavía no, el Hub copia los mapas nuevos del juego al servidor al iniciar la partida (y con Reparar todo).",

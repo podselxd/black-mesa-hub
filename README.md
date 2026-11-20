@@ -15,6 +15,7 @@ Lo que falta por probar a fondo: los comandos de chat dentro de una partida y en
 
 - **Crear partida** — eliges capítulo y pulsas *Iniciar partida*: el Hub arranca el servidor dedicado (sin ventana de consola), abre Black Mesa sin su consola y entras **directo a la partida**, sin pasar por el panel Spawn/Spectate. Muestra quién está dentro.
 - **Invitación** — copia `connect IP:puerto` (con contraseña si la pones). Detecta Tailscale, otras VPN (Radmin, Hamachi…), la red local, y con un botón consulta tu IP pública. Si el puerto 27015 está ocupado usa el siguiente libre.
+- **Radmin VPN** — es lo que une tu PC con la de tus amigos sin abrir puertos del router. El Hub lo exige para jugar, avisa si falta (con el botón para descargarlo) y lo abre solo en segundo plano cada vez que lo usas. La primera vez pregunta si es tu primera vez jugando y enseña un **tutorial** (para el anfitrión y para el que se une). La tarjeta «Radmin VPN» guarda el nombre y la contraseña de tu red y copia una **guía para amigos** lista para pegar en Discord. Se puede desactivar en Reglas → *Usar Radmin VPN*.
 - **Invitar por Steam** — copia la invitación y abre tu lista de amigos de Steam para pegarla en su chat. Además, el anfitrión entra al servidor por la misma dirección que eliges para la invitación: si tus amigos pueden alcanzarla (VPN, Tailscale o IP pública) y no hay contraseña, Steam puede mostrarles «Unirse a la partida» en tu perfil (no lo he podido comprobar).
 - **Unirme** — pegas la invitación (o la IP) de tu amigo y entras.
 - **Reglas** — trucos, fuego amigo, supervivencia (On/Off), reaparición, jugadores máximos, contraseña, nombre del servidor, pantalla, gráficos y comandos extra.
@@ -35,7 +36,7 @@ La primera vez, *Instalar ahora* descarga Metamod:Source y SourceMod (de alliedm
 
 **Invitados:** Steam abierto → `BlackMesaHub.exe` → *Unirme* → pega la invitación.
 
-Para que entren por internet necesitan estar en tu red (Tailscale o una VPN) o que abras el puerto UDP 27015 hacia tu PC y uses tu IP pública. Si el mapa es del Workshop, deben suscribirse antes.
+Para que entren por internet, todos usan **Radmin VPN** y están en la misma red de Radmin (el tutorial del Hub lo explica paso a paso). Alternativas: Tailscale u otra VPN, o abrir el puerto UDP 27015 en tu router y usar tu IP pública. Si el mapa es del Workshop, deben suscribirse antes.
 
 ## Comandos de chat
 

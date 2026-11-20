@@ -196,6 +196,8 @@ function Start-Game($client, $srv, $user, $p) {
     if (-not $client) { throw 'No encuentro Black Mesa. Instálalo desde Steam.' }
     if (-not (Get-Process -Name steam -ErrorAction SilentlyContinue)) { throw 'Steam está cerrado. Abre Steam y vuelve a intentar.' }
     if (Get-ClientProc) { throw 'Black Mesa ya está abierto. Ciérralo primero (botón Cerrar juego).' }
+    # Radmin VPN: el anfitrion siempre; el invitado cuando la direccion es de Radmin (26.x)
+    if ($p.useRadmin -ne $false -and ($p.mode -ne 'join' -or "$($p.ip)" -like '26.*')) { [void](Confirm-Radmin) }
     # un doble clic en Iniciar no debe apagar el servidor que acaba de arrancar
     $prev = $script:Launch
     if ($p.mode -ne 'join' -and $prev -and $prev.mode -ne 'join' -and -not $prev.handled -and ((Get-Date) - $prev.at).TotalSeconds -lt 120 -and (Get-ServerProc $srv)) { throw 'La partida ya se está iniciando.' }
@@ -263,6 +265,8 @@ function Get-LaunchProgress($client, $srv, $user) {
     }
     else {
         $sp = Get-ServerProc $srv
+        # justo despues de lanzarlo Windows aun no deja leer la ruta del proceso: se le busca por su pid (si no, saltaba un «El servidor se cerro» falso)
+        if (-not $sp -and $L.srvPid) { $sp = Get-Process -Id $L.srvPid -ErrorAction SilentlyContinue }
         $st = Get-ServerState $srv
         if ($sp -and $elapsed -lt 60) { [HubWin]::HideByPid($sp.Id) | Out-Null }
         # La primera vez, el Updater de SourceMod baja gamedata nuevo y pide reiniciar: el servidor se reinicia una sola vez, antes de abrir el juego
@@ -286,7 +290,7 @@ function Get-LaunchProgress($client, $srv, $user) {
         $steps += @{ k = 'game'; label = 'Abriendo Black Mesa'; done = [bool]($L.clientStarted -and $cp -and $cp.MainWindowHandle -ne 0) }
         $steps += @{ k = 'ready'; label = 'Dentro de la partida'; done = [bool]($mapOk -and $st.players -ge 1 -and $cp) }
         $done = @($steps | Where-Object { -not $_.done }).Count -eq 0
-        if (-not $sp -and -not $done) { $err = 'El servidor se cerró. Mira el diagnóstico en Ajustes.' }
+        if (-not $sp -and -not $done -and $elapsed -gt 15) { $err = 'El servidor se cerró. Mira el diagnóstico en Ajustes.' }
         elseif ($sp -and -not $st -and $elapsed -gt 120) { $err = 'El servidor no cargó el plugin del Hub en 2 minutos. Mira el diagnóstico en Ajustes.' }
         elseif ($L.clientStarted -and -not $cp -and $L.seen -and -not $done) { $err = 'El juego se cerró antes de entrar.' }
         elseif ($L.clientStarted -and -not $cp -and -not $L.seen -and ((Get-Date) - $L.at).TotalSeconds -gt 150) { $err = 'El juego no abrió. Revisa que Steam esté abierto.' }
@@ -369,6 +373,8 @@ if (-not $NoBrowser) {
     if ($mine.Count -eq 0) { foreach ($s in 'Sessions', 'Current Session', 'Last Session', 'Current Tabs', 'Last Tabs') { Remove-Item (Join-Path $prof "Default\$s") -Recurse -Force -ErrorAction SilentlyContinue } }
 }
 $edgeProc = Open-Window "http://127.0.0.1:$port/?t=$token"
+# Radmin VPN en segundo plano (como lo hace Windows al iniciar sesion): quien juega a diario no tiene que acordarse de abrirlo
+$s0 = Read-Settings; if (-not $s0 -or $s0.useRadmin -ne $false) { try { [void](Start-RadminBackground) } catch {} }
 Log "hub en puerto $port | cliente: $client | servidor: $srv"
 
 try {
@@ -390,8 +396,11 @@ try {
             switch ($path) {
                 '/api/ping' {
                     $lastPing = Get-Date
+                    # la consola del servidor no debe verse nunca (si se hace clic en ella, Windows la pausa y el servidor se congela)
+                    if ($script:Launch -and $script:Launch.srvPid -and ((Get-Date) - $script:Launch.at).TotalSeconds -lt 240) { [HubWin]::HideByPid($script:Launch.srvPid) | Out-Null }
                     $st = $null; if ($srv) { $st = Get-ServerState $srv }
-                    Send $ctx @{ port = $(if ($sp = Get-ServerPort $srv) { $sp } else { Get-FreeGamePort }); running = [bool](Get-ClientProc); steam = [bool](Get-Process steam -ErrorAction SilentlyContinue); server = [bool](Get-ServerProc $srv); players = $(if ($st) { $st.names } else { @() }); map = $(if ($st) { $st.map } else { '' }) }
+                    $rad = Get-RadminInfo
+                    Send $ctx @{ radminInstalled = $rad.installed; radminIp = $rad.ip; radminGui = $rad.gui; port = $(if ($sp = Get-ServerPort $srv) { $sp } else { Get-FreeGamePort }); running = [bool](Get-ClientProc); steam = [bool](Get-Process steam -ErrorAction SilentlyContinue); server = [bool](Get-ServerProc $srv); players = $(if ($st) { $st.names } else { @() }); map = $(if ($st) { $st.map } else { '' }) }
                 }
                 '/api/state' {
                     Send $ctx @{
@@ -401,6 +410,7 @@ try {
                         chapters = @(Get-Chapters $srv)
                         components = $(if ($srv) { @(Get-Components $srv) } else { @() })
                         addresses = @(Get-Addresses)
+                        radmin = (Get-RadminInfo -Fresh)
                         port = $(if ($sp = Get-ServerPort $srv) { $sp } else { Get-FreeGamePort })
                         version = $Version
                         changelog = @(Get-Changelog)
@@ -482,6 +492,10 @@ try {
                         if (Get-ServerProc $srv) { throw 'Detén el servidor primero.' }
                         Undo-All $srv; Send $ctx @{ ok = $true; items = @(Get-Health $client $srv $user $user.steamId) }
                     }
+                    catch { Send $ctx @{ ok = $false; error = $_.Exception.Message } }
+                }
+                '/api/radminstart' {
+                    try { [void](Start-RadminBackground); Send $ctx @{ ok = $true; radmin = (Get-RadminInfo -Fresh) } }
                     catch { Send $ctx @{ ok = $false; error = $_.Exception.Message } }
                 }
                 '/api/steam' {

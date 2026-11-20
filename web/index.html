@@ -164,6 +164,13 @@ code{background:#0a0b0d;padding:1px 6px;border-radius:5px;font:12px Consolas,mon
 .inv{background:#0a0b0d;border:1px solid var(--line);border-radius:9px;padding:10px 14px;font:13px/1.55 Consolas,monospace;color:#cfe;white-space:pre-wrap;word-break:break-all;margin:10px 0}
 #lost{position:sticky;top:0;z-index:60;background:#3a1416;border-bottom:1px solid #8a2b30;color:#ffd7d7;padding:11px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 #lost span{color:#e8b4b4;font-size:13px;flex:1;min-width:200px}
+.modal{position:fixed;inset:0;z-index:70;background:#08090bf0;backdrop-filter:blur(8px);display:grid;place-items:center;padding:20px}
+.mcard{width:min(640px,100%);max-height:90vh;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:22px;box-shadow:0 20px 60px #000a}
+.steps{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:9px;counter-reset:s}
+.steps li{counter-increment:s;display:flex;gap:12px;align-items:flex-start;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.steps li:before{content:counter(s);flex:none;width:24px;height:24px;border-radius:50%;background:var(--hev);color:#1a1100;font:700 13px Bahnschrift;display:grid;place-items:center}
+.steps li.done:before{content:"✓";background:var(--ok)}
+.steps b{font-weight:600}.steps span{display:block;color:var(--mute);font-size:12.5px;margin-top:2px}
 .hidden{display:none!important}
 @media(max-width:900px){main{grid-template-columns:1fr}}
 </style>
@@ -188,6 +195,7 @@ code{background:#0a0b0d;padding:1px 6px;border-radius:5px;font:12px Consolas,mon
     <div class="pill"><span class="dot" id="d-steam"></span><span id="t-steam">Steam</span></div>
     <div class="pill"><span class="dot" id="d-srv"></span><span id="t-srv">Servidor apagado</span></div>
     <div class="pill"><span class="dot" id="d-game"></span><span id="t-game">Juego</span></div>
+    <div class="pill" id="p-radmin" style="cursor:pointer" title="Radmin VPN: clic para ver el tutorial"><span class="dot" id="d-radmin"></span><span id="t-radmin">Radmin</span></div>
   </div>
 </header>
 
@@ -209,6 +217,14 @@ code{background:#0a0b0d;padding:1px 6px;border-radius:5px;font:12px Consolas,mon
     </section>
   </div>
   <div class="col">
+    <section class="card" id="radmin-card">
+      <h2>Radmin VPN</h2>
+      <div class="note" id="rad-status" style="margin:0 0 10px"></div>
+      <div class="row" style="margin-bottom:10px"><button class="btn pri hidden" id="rad-dl">Descargar Radmin VPN ↗</button><button class="btn pri hidden" id="rad-open">Abrir Radmin</button><button class="btn" id="rad-tut">Cómo se usa</button></div>
+      <div class="row"><input type="text" id="rad-net" placeholder="Nombre de tu red de Radmin" style="flex:1;min-width:150px" maxlength="60"><input type="text" id="rad-pass" placeholder="Contraseña de la red" style="flex:1;min-width:150px" maxlength="60" autocomplete="off"></div>
+      <div class="row" style="margin-top:10px"><button class="btn" id="rad-guide">Copiar guía para amigos</button></div>
+      <div class="note">La guía lleva los pasos para tus amigos, el nombre y la contraseña de la red y tu invitación.</div>
+    </section>
     <section class="card">
       <h2>Sala de invitación</h2>
       <div class="row" style="margin-bottom:4px">
@@ -250,6 +266,7 @@ code{background:#0a0b0d;padding:1px 6px;border-radius:5px;font:12px Consolas,mon
     <div class="seg wide" id="r-screen"><button data-v="window">Ventana</button><button data-v="full">Completa</button><button data-v="full43">Completa 4:3</button></div>
     <div class="rule"><div><b>Gráficos</b><span>si el juego se cierra al abrir, cambia esto</span></div><select id="r-gfx" style="width:190px"><option value="default">Normal (sin DXVK)</option><option value="dxvk">DXVK (Vulkan)</option><option value="d3d9">Direct3D 9</option></select></div>
     <div class="rule"><div><b>Minimizar el Hub al iniciar</b></div><label class="sw"><input type="checkbox" id="r-minimize"><i></i></label></div>
+    <div class="rule"><div><b>Usar Radmin VPN</b><span>Exige tenerlo y lo abre solo en segundo plano</span></div><label class="sw"><input type="checkbox" id="r-radmin"><i></i></label></div>
     <div class="rule"><div><b>Copiar invitación al iniciar</b></div><label class="sw"><input type="checkbox" id="r-autocopy"><i></i></label></div>
   </section>
   <section class="card">
@@ -269,6 +286,7 @@ code{background:#0a0b0d;padding:1px 6px;border-radius:5px;font:12px Consolas,mon
     </div>
     <div class="idline" id="j-idline"><span id="j-id">Sin dirección</span><button class="mini" id="j-copy">Copiar connect</button></div>
     <div class="note">Si el mapa es del Workshop, suscríbete antes en Steam. La campaña normal ya viene en el juego.</div>
+    <div class="row" style="margin-top:10px"><button class="btn" id="join-tut">¿Primera vez? Tutorial de Radmin VPN</button></div>
   </section>
   <section class="card">
     <h2>Amigos guardados</h2>
@@ -324,7 +342,7 @@ code{background:#0a0b0d;padding:1px 6px;border-radius:5px;font:12px Consolas,mon
   <section class="card">
     <div class="row" style="justify-content:space-between;align-items:flex-start">
       <div><h2>Black Mesa Hub <span class="vtag" id="ver"></span></h2></div>
-      <div class="row"><button class="btn" id="diag-copy">Copiar diagnóstico</button></div>
+      <div class="row"><button class="btn" id="tut-open2">Tutorial de Radmin VPN</button><button class="btn" id="diag-copy">Copiar diagnóstico</button></div>
     </div>
     <div id="changelog"></div>
     <div class="note">El diagnóstico incluye tu nombre de Steam y rutas de tu PC.</div>
@@ -347,6 +365,25 @@ code{background:#0a0b0d;padding:1px 6px;border-radius:5px;font:12px Consolas,mon
   <div id="ld-err" class="hidden"></div>
   <button class="btn hidden" id="ld-close" style="margin-top:16px">Cerrar</button>
 </div></div>
+<div id="first" class="modal hidden"><div class="mcard" style="max-width:460px;text-align:center">
+  <h2 style="color:var(--text);font-size:20px">¿Es tu primera vez jugando?</h2>
+  <div class="note" style="margin:8px 0 0">Te explico en un minuto cómo conectar con tus amigos con Radmin VPN, tanto si creas la partida como si te unes a la de alguien.</div>
+  <div class="row" style="justify-content:center;margin-top:18px"><button class="btn pri" id="first-yes">Sí, enséñame</button><button class="btn" id="first-no">No, ya sé</button></div>
+</div></div>
+<div id="tut" class="modal hidden"><div class="mcard">
+  <div class="row" style="justify-content:space-between"><h2 style="margin:0">Tutorial · Radmin VPN</h2><button class="mini" id="tut-x">✕</button></div>
+  <div class="note" style="margin:6px 0 12px">Radmin VPN es un programa gratuito que une tu PC con el de tus amigos como si estuvieran en la misma red. Todos los que juegan lo necesitan.</div>
+  <div class="seg wide" id="tut-tabs"><button data-v="host">Soy el anfitrión</button><button data-v="guest">Me uno a un amigo</button></div>
+  <ol class="steps" id="tut-steps"></ol>
+  <div class="note">Los nombres de los menús de Radmin pueden variar un poco según la versión.</div>
+  <div class="row" style="margin-top:14px"><button class="btn pri" id="tut-dl">Descargar Radmin VPN ↗</button><button class="btn pri" id="tut-open">Abrir Radmin ahora</button><button class="btn" id="tut-done" style="margin-left:auto">Listo</button></div>
+</div></div>
+<div id="dlg" class="modal hidden" style="z-index:80"><div class="mcard" style="max-width:460px">
+  <h2 id="dlg-t" style="margin:0 0 8px;color:var(--text);font-size:18px"></h2>
+  <div id="dlg-d" style="margin:0 0 14px;color:var(--mute);font-size:13.5px;white-space:pre-line"></div>
+  <input type="text" id="dlg-in" class="hidden" maxlength="40" style="margin-bottom:14px" autocomplete="off">
+  <div class="row" style="justify-content:flex-end"><button class="btn" id="dlg-no"></button><button class="btn pri" id="dlg-yes"></button></div>
+</div></div>
 <div id="busy" class="hidden"><div class="spin"></div><span id="busy-t">Aplicando…</span></div>
 <div id="toast"></div>
 
@@ -357,7 +394,7 @@ const TITLES={bm_c0a0a:'Black Mesa Inbound',bm_c1a0a:'Anomalous Materials',bm_c1
  bm_c1a4a:'Blast Pit',bm_c2a1a:'Power Up',bm_c2a2a:'On a Rail',bm_c2a3a:'Apprehension',bm_c2a4a:'Residue Processing',bm_c2a4e:'Questionable Ethics',
  bm_c2a5a:'Surface Tension',bm_c3a1a:'Forget About Freeman!',bm_c3a2a:'Lambda Core',bm_c4a1a:'Xen',bm_c4a2a:"Gonarch's Lair",bm_c4a3a:'Interloper',
  bm_c4a4a:'Nihilanth',bm_c5a1:'Endgame'};
-const DEF={map:'bm_c0a0a',maxplayers:8,cheats:false,friendlyfire:false,respawn:2,survival:0,password:'',hostname:'',screen:'full',gfx:'default',minimize:true,logo:'hex',autoCopy:true,extra:'',friends:[],hosts:[],lastJoin:'',addr:''};
+const DEF={map:'bm_c0a0a',maxplayers:8,cheats:false,friendlyfire:false,respawn:2,survival:0,password:'',hostname:'',screen:'full',gfx:'default',minimize:true,logo:'hex',autoCopy:true,extra:'',friends:[],hosts:[],lastJoin:'',addr:'',useRadmin:true,radminNet:'',radminPass:'',tutorialDone:false};
 let S={...DEF}, info={}, running=false, srvRunning=false, pubIp='';
 const $=id=>document.getElementById(id);
 async function api(p,body){
@@ -382,7 +419,7 @@ function addrList(){
 function curAddr(){
   const l=addrList();if(!l.length)return '';
   const f=l.find(a=>a.v===S.addr);if(f)return f.v;
-  const t=(info.addresses||[]).find(a=>a.kind==='tailscale')||(info.addresses||[])[0];
+  const t=(info.addresses||[]).find(a=>a.kind==='radmin')||(info.addresses||[]).find(a=>a.kind==='tailscale')||(info.addresses||[])[0];
   return t?t.ip:l[0].v;
 }
 function invite(){
@@ -405,7 +442,7 @@ function render(){
   $('addr').innerHTML=al.length?al.map(a=>`<option value="${a.v}" ${a.v===cur?'selected':''}>${esc(a.t)}</option>`).join(''):'<option value="">Sin red detectada</option>';
   $('inv').textContent=invite();
   const ad=(info.addresses||[]).find(a=>a.ip===cur),kind=cur===pubIp&&pubIp?'pub':ad?ad.kind:'';
-  $('addr-note').textContent=kind==='tailscale'?'Tailscale: tus amigos también deben tenerlo y estar en tu red.':kind==='vpn'?`VPN (${ad.label}): tus amigos deben estar en la misma red VPN.`:kind==='pub'?`Abre el puerto ${info.port||27015} (UDP) en tu router hacia este PC.`:kind==='lan'?'Red local: solo funciona para quien esté en tu misma red. Para internet usa Tailscale, una VPN o tu IP pública.':'';
+  $('addr-note').textContent=kind==='tailscale'?'Tailscale: tus amigos también deben tenerlo y estar en tu red.':kind==='radmin'?'Radmin VPN: tus amigos deben estar en tu misma red de Radmin (mira el tutorial).':kind==='vpn'?`VPN (${ad.label}): tus amigos deben estar en la misma red VPN.`:kind==='pub'?`Abre el puerto ${info.port||27015} (UDP) en tu router hacia este PC.`:kind==='lan'?'Red local: solo funciona para quien esté en tu misma red. Para internet usa Tailscale, una VPN o tu IP pública.':'';
   // sala
   const me=info.steamName||'Tú';
   let h=`<div class="slot me"><div class="av">${esc(me[0].toUpperCase())}</div><div><b>${esc(me)}</b><small>Anfitrión · ${S.maxplayers} jugadores máx.</small></div></div>`;
@@ -424,6 +461,7 @@ function render(){
   $('need-install').classList.toggle('hidden',noSrv);
   setRunning(running,srvRunning);
   renderJoin();
+  renderRadmin();
 }
 const room={players:[]};
 function setRunning(r,s){
@@ -432,8 +470,9 @@ function setRunning(r,s){
   $('d-srv').classList.toggle('ok',srvRunning);$('t-srv').textContent=srvRunning?'Servidor encendido':'Servidor apagado';
   $('stop').classList.toggle('hidden',!r);$('stop-srv').classList.toggle('hidden',!srvRunning);
   const st=!!info.steamRunning,ready=!!info.serverPath&&!(info.components||[]).some(c=>!c.ok);
-  $('go-host').disabled=r||!ready||!st||!(info.chapters||[]).length;$('go-join').disabled=r||!parseJoin($('j-text').value)||!st||!info.clientPath;
-  $('go-host').textContent=r?'En curso…':!ready?'Falta preparar el servidor':!st?'Abre Steam primero':srvRunning?'Reiniciar partida':'Iniciar partida';
+  // con el juego abierto y SIN servidor (el servidor se cerró), se puede iniciar: el Hub cierra antes el juego
+  $('go-host').disabled=(r&&srvRunning)||!ready||!st||!(info.chapters||[]).length;$('go-join').disabled=r||!parseJoin($('j-text').value)||!st||!info.clientPath;
+  $('go-host').textContent=r&&srvRunning?'En curso…':!ready?'Falta preparar el servidor':!st?'Abre Steam primero':srvRunning?'Reiniciar partida':r?'Cerrar el juego e iniciar':'Iniciar partida';
 }
 function parseJoin(t){
   t=t||'';
@@ -475,19 +514,23 @@ $('friends').onclick=e=>{const b=e.target.closest('button');if(!b)return;
   if(b.dataset.inv!==undefined)copy(`Oye ${S.friends[b.dataset.inv]}, entra:\n`+invite(),'Invitación copiada');
   if(b.dataset.del!==undefined){S.friends.splice(b.dataset.del,1);save();render()}};
 $('go-host').onclick=async()=>{
-  if($('go-host').disabled)return;$('go-host').disabled=true;
+  if($('go-host').disabled)return;
+  if(!await needRadmin(null))return;
+  if(running&&!srvRunning){if(!await ask({title:'El juego sigue abierto',text:'Black Mesa está abierto pero el servidor está apagado. Para iniciar la partida hay que cerrar el juego primero.',yes:'Cerrar el juego e iniciar',no:'Dejarlo abierto'}))return;busyOn('Cerrando el juego…');await api('stop',{});await sleep(2500);busyOff()}
+  $('go-host').disabled=true;
   if(S.autoCopy)await copy(invite(),'Invitación copiada');else toast('Iniciando…');
   busyOn('Preparando…');
   let r;try{r=await api('launch',{mode:'host',...S,addr:curAddr(),minimize:S.minimize!==false})}catch(e){r={ok:false,error:'El Hub no responde'}}finally{busyOff()}
   if(!r.ok)toast(r.error||'No se pudo iniciar');else{setRunning(true,true);showLoading('Iniciando partida','progress')}
 };
-$('stop').onclick=async()=>{if(!confirm('¿Cerrar Black Mesa? El servidor sigue encendido.'))return;await api('stop',{});setRunning(false,srvRunning);toast('Juego cerrado')};
-$('stop-srv').onclick=async()=>{if(!confirm('¿Detener el servidor? Se cierra la partida para todos.'))return;busyOn('Deteniendo…');await api('stopserver',{});busyOff();setRunning(false,false);toast('Servidor detenido')};
+$('stop').onclick=async()=>{if(!await ask({title:'¿Cerrar Black Mesa?',text:'El servidor sigue encendido: puedes volver a entrar cuando quieras.',yes:'Cerrar el juego',no:'Seguir jugando',danger:true}))return;await api('stop',{});setRunning(false,srvRunning);toast('Juego cerrado')};
+$('stop-srv').onclick=async()=>{if(!await ask({title:'¿Detener el servidor?',text:'Se cierra la partida para todos los que estén dentro.',yes:'Detener servidor',no:'Mantenerlo encendido',danger:true}))return;busyOn('Deteniendo…');await api('stopserver',{});busyOff();setRunning(false,false);toast('Servidor detenido')};
 $('j-text').oninput=()=>{S.lastJoin=$('j-text').value;save();renderJoin()};
 $('j-copy').onclick=()=>{const j=parseJoin($('j-text').value);if(j)copy('connect '+j.ip,'Comando copiado')};
 async function joinNow(j){
-  if(!(S.hosts||[]).some(h=>h.ip===j.ip)){const n=prompt('¿Cómo se llama tu amigo? (para guardarlo)','')||'Amigo';S.hosts=[...(S.hosts||[]),{name:n,ip:j.ip,password:j.password}];save()}
-  const r=await api('launch',{mode:'join',ip:j.ip,password:j.password,screen:S.screen,gfx:S.gfx,minimize:S.minimize!==false});
+  if(!await needRadmin(j.ip))return;
+  if(!(S.hosts||[]).some(h=>h.ip===j.ip)){const n=(await ask({title:'Guarda a tu amigo',text:'Ponle un nombre para encontrarlo luego en «Amigos guardados».',input:'Nombre de tu amigo',yes:'Guardar y unirme',no:'Unirme como «Amigo»'}))||'Amigo';S.hosts=[...(S.hosts||[]),{name:n,ip:j.ip,password:j.password}];save()}
+  const r=await api('launch',{mode:'join',ip:j.ip,password:j.password,useRadmin:S.useRadmin!==false,screen:S.screen,gfx:S.gfx,minimize:S.minimize!==false});
   if(!r.ok)toast(r.error||'No se pudo iniciar');else{setRunning(true,srvRunning);showLoading('Entrando a la partida','progress')}
 }
 $('go-join').onclick=()=>{const j=parseJoin($('j-text').value);if(j)joinNow(j)};
@@ -667,12 +710,85 @@ $('hl-repair').onclick=async()=>{
   const bad=renderHealth(r.items);toast(bad?'Reparado en parte: revisa lo que sigue en rojo':'Todo reparado ✓');
 };
 $('hl-undo').onclick=async()=>{
-  if(!confirm('¿Quitar de server.cfg y admins las líneas del Hub, y el plugin de comandos? SourceMod y SourceCoop se quedan instalados.'))return;
+  if(!await ask({title:'¿Deshacer los cambios del Hub?',text:'Se quitan del servidor las líneas del Hub (server.cfg y admins) y el plugin de comandos. SourceMod y SourceCoop se quedan instalados.',yes:'Deshacer cambios',no:'Conservarlos',danger:true}))return;
   const r=await api('undo',{});
   if(!r.ok){toast(r.error||'No se pudo deshacer');return}
   info=await api('state');render();renderHealth(r.items);toast('Cambios deshechos');
 };
 
+// Cuadro de confirmación propio (en lugar del confirm/prompt de Edge): los botones dicen lo que hacen.
+// Con input devuelve el texto (o null si se cancela); sin input devuelve true/false.
+function ask({title,text,yes,no,danger,input,value}){return new Promise(res=>{
+  const yb=$('dlg-yes'),nb=$('dlg-no'),inp=$('dlg-in');
+  $('dlg-t').textContent=title;$('dlg-d').textContent=text||'';
+  yb.textContent=yes||'Aceptar';nb.textContent=no||'Cancelar';yb.className='btn '+(danger?'danger':'pri');
+  inp.classList.toggle('hidden',!input);inp.value=value||'';inp.placeholder=input||'';
+  const key=e=>{if(e.key==='Escape')done(input?null:false);else if(e.key==='Enter')yb.click()};
+  const done=v=>{$('dlg').classList.add('hidden');yb.onclick=nb.onclick=null;document.removeEventListener('keydown',key);res(v)};
+  document.addEventListener('keydown',key);
+  yb.onclick=()=>done(input?inp.value.trim():true);nb.onclick=()=>done(input?null:false);
+  $('dlg').classList.remove('hidden');(input?inp:yb).focus();
+})}
+// ---- Radmin VPN: hace falta para jugar en línea; tutorial y guía para los amigos ----
+const RADMIN_URL='https://www.radmin-vpn.com/';
+function renderRadmin(){
+  const r=info.radmin||{},st=!r.installed?'no':r.ip?'ok':'off',on=S.useRadmin!==false;
+  $('p-radmin').classList.toggle('hidden',!on);$('radmin-card').classList.toggle('hidden',!on);
+  $('d-radmin').classList.toggle('ok',st==='ok');
+  $('t-radmin').textContent=st==='ok'?('Radmin '+r.ip):st==='off'?'Radmin apagado':'Radmin sin instalar';
+  $('rad-status').textContent=st==='ok'?`Conectado · tu dirección es ${r.ip}`:st==='off'?'Radmin VPN está instalado pero apagado. El Hub lo abre solo al iniciar o unirte.':'Radmin VPN no está instalado: lo necesitas para jugar con tus amigos.';
+  $('rad-dl').classList.toggle('hidden',st!=='no');$('rad-open').classList.toggle('hidden',st!=='off');
+  $('r-radmin').checked=on;
+  if(document.activeElement!==$('rad-net'))$('rad-net').value=S.radminNet||'';
+  if(document.activeElement!==$('rad-pass'))$('rad-pass').value=S.radminPass||'';
+  if(!$('tut').classList.contains('hidden'))renderTut();
+}
+// true si se puede seguir. addr = dirección a la que se une (null = soy el anfitrión)
+async function needRadmin(addr){
+  if(S.useRadmin===false)return true;
+  if(addr&&!/^26\./.test(addr))return true;
+  if(!(info.radmin||{}).installed){toast('Primero instala Radmin VPN');openTut(addr?'guest':'host');return false}
+  return true;   // si está instalado pero apagado, el Hub lo abre solo
+}
+function guide(){
+  const net=S.radminNet?`   Nombre de la red: ${S.radminNet}\n   Contraseña: ${S.radminPass||'(te la paso aparte)'}\n`:'   (te paso el nombre y la contraseña de la red aparte)\n';
+  return `Para jugar Black Mesa conmigo:\n1) Instala Radmin VPN (gratis): ${RADMIN_URL}\n2) Ábrelo → menú «Red» → «Unirse a una red existente» (Network → Join an existing network):\n${net}3) Instala el Black Mesa Hub: https://github.com/podselxd/black-mesa-hub/releases/latest\n4) En el Hub → «Unirme» → pega esto y pulsa Unirme:\n\n${invite()}`;
+}
+let tutRole='host';
+function openTut(role){if(role)tutRole=role;renderTut();$('tut').classList.remove('hidden')}
+function closeTut(){$('tut').classList.add('hidden');if(!S.tutorialDone){S.tutorialDone=true;save()}}
+function renderTut(){
+  document.querySelectorAll('#tut-tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===tutRole));
+  const r=info.radmin||{};
+  const base=[
+    {t:'Instala Radmin VPN',d:'Es gratis. Descárgalo con el botón de abajo, instálalo y reinicia el PC si te lo pide.',ok:!!r.installed},
+    {t:'Ábrelo',d:'Queda junto al reloj. A partir de ahora el Hub lo abre solo en segundo plano cada vez que lo uses. Arriba, en el Hub, debe decir «Radmin 26.x.x.x».',ok:!!r.ip}];
+  const H=[...base,
+    {t:'Crea tu red',d:'En Radmin: menú «Red» → «Crear red» (en inglés: Network → Create network). Elige un nombre y una contraseña.'},
+    {t:'Apúntala en el Hub',d:'En Crear partida → tarjeta Radmin VPN, escribe el nombre y la contraseña de tu red.'},
+    {t:'Manda la guía a tus amigos',d:'Pulsa «Copiar guía para amigos» y pégala en Discord o WhatsApp. Lleva los pasos, la red y tu invitación.'},
+    {t:'Inicia la partida',d:'Crear partida → Iniciar partida. Cuando tus amigos entren aparecerán en la sala.'}];
+  const G=[...base,
+    {t:'Únete a la red de tu amigo',d:'En Radmin: menú «Red» → «Unirse a una red existente» (Network → Join an existing network) y escribe el nombre y la contraseña que te mandó.'},
+    {t:'Comprueba que lo ves',d:'En la lista de Radmin debe salir tu amigo (el anfitrión) con el punto en verde.'},
+    {t:'Pega la invitación en el Hub',d:'Pestaña «Unirme»: pega la invitación y pulsa Unirme.'},
+    {t:'Las próximas veces',d:'Solo abre el Hub: abre Radmin solo y entras con un clic.'}];
+  $('tut-steps').innerHTML=(tutRole==='host'?H:G).map(s=>`<li class="${s.ok?'done':''}"><div><b>${esc(s.t)}</b><span>${esc(s.d)}</span></div></li>`).join('');
+  $('tut-dl').classList.toggle('hidden',!!r.installed);$('tut-open').classList.toggle('hidden',!r.installed||!!r.ip);
+}
+const openRadminSite=async()=>{const r=await api('openurl',{url:RADMIN_URL});if(!r.ok)toast(r.error||'No se pudo abrir')};
+const startRadmin=async()=>{toast('Abriendo Radmin VPN…');const r=await api('radminstart',{});if(r.radmin)info.radmin=r.radmin;renderRadmin()};
+$('p-radmin').onclick=()=>openTut();
+$('rad-tut').onclick=()=>openTut('host');$('join-tut').onclick=()=>openTut('guest');$('tut-open2').onclick=()=>openTut();
+$('rad-dl').onclick=openRadminSite;$('tut-dl').onclick=openRadminSite;
+$('rad-open').onclick=startRadmin;$('tut-open').onclick=startRadmin;
+$('rad-guide').onclick=()=>copy(guide(),'Guía copiada: pégala en Discord o WhatsApp');
+$('rad-net').oninput=e=>{S.radminNet=e.target.value;save()};$('rad-pass').oninput=e=>{S.radminPass=e.target.value;save()};
+$('r-radmin').onchange=e=>{S.useRadmin=e.target.checked;save();renderRadmin()};
+$('tut-tabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;tutRole=b.dataset.v;renderTut()};
+$('tut-x').onclick=closeTut;$('tut-done').onclick=closeTut;
+$('first-yes').onclick=()=>{$('first').classList.add('hidden');openTut('host')};
+$('first-no').onclick=()=>{$('first').classList.add('hidden');S.tutorialDone=true;save()};
 // ---- logos ----
 const LOGOS={
   hex:{n:'Hexágono',s:'<path d="M32 4 56 18v28L32 60 8 46V18z" fill="none" stroke="#ffa826" stroke-width="4" stroke-linejoin="round"/><circle cx="32" cy="32" r="8" fill="none" stroke="#ffa826" stroke-width="4"/><path d="M32 13v11M32 40v11M13 32h11M40 32h11" stroke="#ffa826" stroke-width="4" stroke-linecap="round"/>'},
@@ -698,12 +814,13 @@ document.addEventListener('click',e=>{if(!e.target.closest('.logo'))$('logo-pop'
   const ch=(info.chapters||[]);if(ch.length&&!ch.some(c=>c.map===S.map))S.map=ch[0].map;
   applyLogo();renderAbout();loadCoop(true);
   $('j-text').value=S.lastJoin||'';
+  if(!S.tutorialDone&&S.useRadmin!==false)$('first').classList.remove('hidden');
   running=info.running;srvRunning=info.serverRunning;render();
   if(!info.clientPath)toast('No encontré Black Mesa');
   setInterval(async()=>{try{
     const r=await api('ping');
     const sc=r.steam!==info.steamRunning;info.steamRunning=r.steam;
-    const names=(r.players||[]).join('|'),changed=names!==room.players.join('|')||(r.port&&r.port!==info.port);if(r.port)info.port=r.port;room.players=r.players||[];room.map=r.map||'';
+    const names=(r.players||[]).join('|'),changed=names!==room.players.join('|')||(r.port&&r.port!==info.port);if(r.port)info.port=r.port;const rn={installed:r.radminInstalled,ip:r.radminIp,gui:r.radminGui};if(JSON.stringify(rn)!==JSON.stringify(info.radmin||{})){info.radmin=rn;renderRadmin()}room.players=r.players||[];room.map=r.map||'';
     if(sc){$('d-steam').classList.toggle('ok',!!r.steam);$('t-steam').textContent=r.steam?'Steam conectado':'Steam cerrado';$('steam-warn').classList.toggle('hidden',!!r.steam)}
     if(r.running!==running||r.server!==srvRunning||sc)setRunning(r.running,r.server);
     if(changed)render();

@@ -223,8 +223,7 @@ function Start-Game($client, $srv, $user, $p) {
     $cfgP = @{ hostname = $host2; password = $p.password; friendlyfire = [bool]$p.friendlyfire; cheats = [bool]$p.cheats; survival = [int]$p.survival; respawn = $p.respawn; extra = $p.extra }
     Stop-BmsServer $srv
     $sm = Join-Path $srv 'bms\addons\sourcemod'
-    $sp = Join-Path $Root 'plugins\HubCmds.sp'; $smx = Join-Path $sm 'plugins\hubcmds.smx'
-    if (-not (Test-Path $smx) -or (Get-Item $sp).LastWriteTimeUtc -gt (Get-Item $smx).LastWriteTimeUtc) { Install-HubPlugin $srv | Out-Null }
+    if (-not (Test-HubPluginCurrent $srv)) { Install-HubPlugin $srv | Out-Null }
     try { if (Install-SrcCoopFix $srv) { Log 'aplicado el arreglo de gamedata de SourceCoop (PR 375)' } } catch { throw "SourceCoop 1.6 necesita un arreglo para la ultima version de Black Mesa y no pude descargarlo: $($_.Exception.Message)" }
     Set-ServerCfg $srv $cfgP
     if ($user) { Set-HostAdmin $srv $user.steamId }

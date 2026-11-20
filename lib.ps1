@@ -131,8 +131,9 @@ function Get-FreeGamePort {
 function Get-ServerPort($srv) {
     $sp = Get-ServerProc $srv
     if (-not $sp) { return $null }
+    if ($script:PortCache -and $script:PortCache.pid -eq $sp.Id) { return $script:PortCache.port }
     $e = @(Get-NetUDPEndpoint -OwningProcess $sp.Id -ErrorAction SilentlyContinue | Where-Object { $_.LocalPort -in (@(27015..27019) + @(27021..27040)) } | Sort-Object LocalPort)
-    if ($e.Count) { return [int]$e[0].LocalPort }
+    if ($e.Count) { $script:PortCache = @{ pid = $sp.Id; port = [int]$e[0].LocalPort }; return [int]$e[0].LocalPort }
     return $script:GamePort
 }
 
@@ -289,6 +290,14 @@ function Install-HubPlugin($srv) {
     $res = & $spcomp $dst "-o$out" "-i$(Join-Path $sm 'scripting\include')" 2>&1 | Out-String
     if (-not (Test-Path $out) -or $res -match 'error \d+') { throw "No pude compilar el plugin del Hub: $res" }
     return $res
+}
+
+# ¿El plugin compilado ya es el del Hub? Se compara el contenido (el .exe vuelve a escribir el .sp en cada actualizacion y la marca de fecha no sirve):
+# recompilar bloquea el Hub varios segundos y la ventana mostraba «Se perdio la conexion».
+function Test-HubPluginCurrent($srv) {
+    $sm = Join-Path $srv 'bms\addons\sourcemod'
+    $a = Join-Path $Root 'plugins\HubCmds.sp'; $b = Join-Path $sm 'scripting\hubcmds.sp'
+    (Test-Path (Join-Path $sm 'plugins\hubcmds.smx')) -and (Test-Path $b) -and ((Get-FileHash $a -Algorithm SHA256).Hash -eq (Get-FileHash $b -Algorithm SHA256).Hash)
 }
 
 # ---- cola de ordenes al servidor (la lee el plugin cada 0.5 s) ----

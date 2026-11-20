@@ -1,6 +1,14 @@
 [
     {
         "date":  "2026-11-20",
+        "version":  "0.1.5",
+        "notes":  [
+                      "Al iniciar la partida el Hub ya no se queda varios segundos recompilando el plugin (provocaba «Se perdió la conexión con el Hub» en la ventana): solo recompila si el plugin cambió de verdad.",
+                      "La ventana aguanta más tiempo sin respuesta antes de avisar, sobre todo mientras arranca la partida."
+                  ]
+    },
+    {
+        "date":  "2026-11-20",
         "version":  "0.1.4",
         "notes":  [
                       "Al abrir un .exe más nuevo, el Hub viejo que seguía corriendo se cierra y toma el relevo (antes se quedaba el código antiguo).",

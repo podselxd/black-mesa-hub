@@ -707,7 +707,7 @@ document.addEventListener('click',e=>{if(!e.target.closest('.logo'))$('logo-pop'
     if(r.running!==running||r.server!==srvRunning||sc)setRunning(r.running,r.server);
     if(changed)render();
     pingFail=0;$('lost').classList.add('hidden')
-  }catch(e){if(++pingFail>=3)$('lost').classList.remove('hidden')}},3000);
+  }catch(e){if(++pingFail>=(!$('loading').classList.contains('hidden')?20:6))$('lost').classList.remove('hidden')}},3000);
 })();
 </script>
 </body>
